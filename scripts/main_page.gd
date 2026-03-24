@@ -8,6 +8,7 @@ func _ready() -> void:
 	view_save_button.pressed.connect(_on_view_save_pressed)
 
 func _on_start_new_game_pressed() -> void:
+	SaveManager.write_fresh_save()
 	get_tree().change_scene_to_file("res://gameMain.tscn")
 
 func _on_view_save_pressed() -> void:

@@ -10,6 +10,8 @@ script = ExtResource("2_game_main_script")
 texture = ExtResource("1_map_texture")
 position = Vector2(1728, 972)
 
+[node name="InteractionSpots" type="Node2D" parent="."]
+
 [node name="GameCamera" type="Camera2D" parent="."]
 position = Vector2(1728, 972)
 enabled = true
@@ -40,6 +42,14 @@ text = "当前金币:"
 [node name="GoldValueLabel" type="Label" parent="UI/TopBar/TopBarContent"]
 layout_mode = 2
 text = "1000"
+
+[node name="HealthTitleLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+layout_mode = 2
+text = "当前血量:"
+
+[node name="HealthValueLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+layout_mode = 2
+text = "50"
 
 [node name="Spacer" type="Control" parent="UI/TopBar/TopBarContent"]
 layout_mode = 2
@@ -83,3 +93,30 @@ text = "退出"
 [node name="CloseButton" type="Button" parent="UI/SettingsPopup/PopupContent"]
 layout_mode = 2
 text = "关闭"
+
+[node name="InteractionPopup" type="PanelContainer" parent="UI"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -80.0
+offset_right = 180.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InteractionPopupContent" type="VBoxContainer" parent="UI/InteractionPopup"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="InteractionTypeLabel" type="Label" parent="UI/InteractionPopup/InteractionPopupContent"]
+layout_mode = 2
+text = "type: —"
+horizontal_alignment = 1
+
+[node name="InteractionEndButton" type="Button" parent="UI/InteractionPopup/InteractionPopupContent"]
+layout_mode = 2
+text = "结束"

@@ -1,0 +1,73 @@
+{
+	"yearEvent": {
+		"1": {
+			"count": 1,
+			"build": [
+				{
+					"type": "start",
+					"probability": "100"
+				}
+			]
+		},
+		"2": {
+			"count": 3,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "70"
+				},
+				{
+					"type": "event",
+					"probability": "30"
+				}
+			]
+		},
+		"3": {
+			"count": 3,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "70"
+				},
+				{
+					"type": "event",
+					"probability": "20"
+				},
+				{
+					"type": "box",
+					"probability": "10"
+				}
+			]
+		},
+		"4": {
+			"count": 3,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "40"
+				},
+				{
+					"type": "event",
+					"probability": "20"
+				},
+				{
+					"type": "box",
+					"probability": "10"
+				},
+				{
+					"type": "rest",
+					"probability": "30"
+				}
+			]
+		},
+		"5": {
+			"count": 1,
+			"build": [
+				{
+					"type": "boss",
+					"probability": "100"
+				}
+			]
+		}
+	}
+}

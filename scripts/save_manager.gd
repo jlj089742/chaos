@@ -4,7 +4,9 @@ class_name SaveManager
 const SAVE_PATH := "user://savegame.json"
 const DEFAULT_SAVE := {
 	"year": 1,
-	"gold": 1000
+	"gold": 1000,
+	"health": 50,
+	"interaction_spots": []
 }
 
 static func load_save() -> Dictionary:
@@ -30,8 +32,15 @@ static func load_save() -> Dictionary:
 		data["year"] = DEFAULT_SAVE["year"]
 	if not data.has("gold"):
 		data["gold"] = DEFAULT_SAVE["gold"]
+	if not data.has("health"):
+		data["health"] = DEFAULT_SAVE["health"]
+	if not data.has("interaction_spots") or typeof(data["interaction_spots"]) != TYPE_ARRAY:
+		data["interaction_spots"] = []
 
 	return data
+
+static func write_fresh_save() -> bool:
+	return save_game(DEFAULT_SAVE.duplicate(true))
 
 static func save_game(data: Dictionary) -> bool:
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
