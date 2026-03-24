@@ -1,0 +1,59 @@
+{
+	"1": {
+		"context": "币不可少，金币+100",
+		"change": [
+			{
+				"changeAttr": "gold",
+				"changeAmount": 100
+			}
+		]
+	},
+	"2": {
+		"context": "宫廷玉液酒，180一杯,生命值+30",
+		"change": [
+			{
+				"changeAttr": "gold",
+				"changeAmount": -180
+			},
+			{
+				"changeAttr": "health",
+				"changeAmount": 30
+			}
+		]
+	},
+	"3": {
+		"context": "我先躺了，生命值+10",
+		"change": [
+			{
+				"changeAttr": "health",
+				"changeAmount": 10
+			}
+		]
+	},
+	"4": {
+		"context": "门无法从这一侧打开，金币-200，生命-30",
+		"change": [
+			{
+				"changeAttr": "gold",
+				"changeAmount": -200
+			},
+			{
+				"changeAttr": "health",
+				"changeAmount": -30
+			}
+		]
+	},
+	"5": {
+		"context": "《龙傲天的一生》，金币+500、生命+100",
+		"change": [
+			{
+				"changeAttr": "gold",
+				"changeAmount": 500
+			},
+			{
+				"changeAttr": "health",
+				"changeAmount": 100
+			}
+		]
+	}
+}

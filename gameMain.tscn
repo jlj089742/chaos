@@ -1,65 +1,84 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://c1o8mrararvep"]
 
-[ext_resource type="Texture2D" path="res://resource/mapbase.png" id="1_map_texture"]
-[ext_resource type="Script" path="res://scripts/game_main.gd" id="2_game_main_script"]
+[ext_resource type="Texture2D" uid="uid://brs1dcy1u4a2m" path="res://resource/mapbase.png" id="1_map_texture"]
+[ext_resource type="Script" uid="uid://ushukmat3k22" path="res://scripts/game_main.gd" id="2_game_main_script"]
+[ext_resource type="Texture2D" uid="uid://bdjax47rh247" path="res://resource/startbase.png" id="3_startbase"]
 
-[node name="GameMain" type="Node2D"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bubble"]
+bg_color = Color(0.14, 0.15, 0.2, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38, 0.45, 0.62, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 16
+content_margin_top = 12
+content_margin_right = 16
+content_margin_bottom = 12
+
+[node name="GameMain" type="Node2D" unique_id=1552953217]
 script = ExtResource("2_game_main_script")
 
-[node name="MapSprite" type="Sprite2D" parent="."]
+[node name="MapSprite" type="Sprite2D" parent="." unique_id=731796186]
+position = Vector2(1728, 972)
 texture = ExtResource("1_map_texture")
+
+[node name="InteractionSpots" type="Node2D" parent="." unique_id=734568841]
+
+[node name="GameCamera" type="Camera2D" parent="." unique_id=1339876956]
 position = Vector2(1728, 972)
 
-[node name="InteractionSpots" type="Node2D" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=700303923]
 
-[node name="GameCamera" type="Camera2D" parent="."]
-position = Vector2(1728, 972)
-enabled = true
-
-[node name="UI" type="CanvasLayer" parent="."]
-layer = 1
-
-[node name="TopBar" type="PanelContainer" parent="UI"]
-offset_right = 1152.0
+[node name="TopBar" type="PanelContainer" parent="UI" unique_id=810487220]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 12.0
+offset_right = -12.0
 offset_bottom = 52.0
+grow_horizontal = 2
 
-[node name="TopBarContent" type="HBoxContainer" parent="UI/TopBar"]
+[node name="TopBarContent" type="HBoxContainer" parent="UI/TopBar" unique_id=366363647]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="YearTitleLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+[node name="YearTitleLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=2056938016]
 layout_mode = 2
 text = "当前年份:"
 
-[node name="YearValueLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+[node name="YearValueLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1819767505]
 layout_mode = 2
 text = "1"
 
-[node name="GoldTitleLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+[node name="GoldTitleLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1519266773]
 layout_mode = 2
 text = "当前金币:"
 
-[node name="GoldValueLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+[node name="GoldValueLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=2021477768]
 layout_mode = 2
-text = "1000"
+text = "200"
 
-[node name="HealthTitleLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+[node name="HealthTitleLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1791811645]
 layout_mode = 2
 text = "当前血量:"
 
-[node name="HealthValueLabel" type="Label" parent="UI/TopBar/TopBarContent"]
+[node name="HealthValueLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1144322763]
 layout_mode = 2
 text = "50"
 
-[node name="Spacer" type="Control" parent="UI/TopBar/TopBarContent"]
+[node name="Spacer" type="Control" parent="UI/TopBar/TopBarContent" unique_id=872743177]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SettingsButton" type="Button" parent="UI/TopBar/TopBarContent"]
+[node name="SettingsButton" type="Button" parent="UI/TopBar/TopBarContent" unique_id=924903108]
 layout_mode = 2
 text = "设置"
 
-[node name="SettingsPopup" type="PanelContainer" parent="UI"]
+[node name="SettingsPopup" type="PanelContainer" parent="UI" unique_id=410726119]
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -73,28 +92,28 @@ offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PopupContent" type="VBoxContainer" parent="UI/SettingsPopup"]
+[node name="PopupContent" type="VBoxContainer" parent="UI/SettingsPopup" unique_id=1356378606]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="PopupTitle" type="Label" parent="UI/SettingsPopup/PopupContent"]
+[node name="PopupTitle" type="Label" parent="UI/SettingsPopup/PopupContent" unique_id=2123428729]
 layout_mode = 2
 text = "游戏设置"
 horizontal_alignment = 1
 
-[node name="SaveGameButton" type="Button" parent="UI/SettingsPopup/PopupContent"]
+[node name="SaveGameButton" type="Button" parent="UI/SettingsPopup/PopupContent" unique_id=1160705552]
 layout_mode = 2
 text = "保存存档"
 
-[node name="ExitButton" type="Button" parent="UI/SettingsPopup/PopupContent"]
+[node name="ExitButton" type="Button" parent="UI/SettingsPopup/PopupContent" unique_id=1275531104]
 layout_mode = 2
 text = "退出"
 
-[node name="CloseButton" type="Button" parent="UI/SettingsPopup/PopupContent"]
+[node name="CloseButton" type="Button" parent="UI/SettingsPopup/PopupContent" unique_id=7433279]
 layout_mode = 2
 text = "关闭"
 
-[node name="InteractionPopup" type="PanelContainer" parent="UI"]
+[node name="InteractionPopup" type="PanelContainer" parent="UI" unique_id=189923837]
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -108,15 +127,93 @@ offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="InteractionPopupContent" type="VBoxContainer" parent="UI/InteractionPopup"]
+[node name="InteractionPopupContent" type="VBoxContainer" parent="UI/InteractionPopup" unique_id=935457925]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="InteractionTypeLabel" type="Label" parent="UI/InteractionPopup/InteractionPopupContent"]
+[node name="InteractionTypeLabel" type="Label" parent="UI/InteractionPopup/InteractionPopupContent" unique_id=285228190]
 layout_mode = 2
 text = "type: —"
 horizontal_alignment = 1
 
-[node name="InteractionEndButton" type="Button" parent="UI/InteractionPopup/InteractionPopupContent"]
+[node name="InteractionEndButton" type="Button" parent="UI/InteractionPopup/InteractionPopupContent" unique_id=654750200]
 layout_mode = 2
 text = "结束"
+
+[node name="StartInteractionPopup" type="Control" parent="UI" unique_id=183001]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Center" type="CenterContainer" parent="UI/StartInteractionPopup" unique_id=183002]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DialogRoot" type="Control" parent="UI/StartInteractionPopup/Center" unique_id=183003]
+custom_minimum_size = Vector2(900, 520)
+layout_mode = 2
+
+[node name="Background" type="TextureRect" parent="UI/StartInteractionPopup/Center/DialogRoot" unique_id=183004]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_startbase")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Content" type="MarginContainer" parent="UI/StartInteractionPopup/Center/DialogRoot" unique_id=183005]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="UI/StartInteractionPopup/Center/DialogRoot/Content" unique_id=183006]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BubbleRow" type="HBoxContainer" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox" unique_id=183007]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="BubblePanel" type="PanelContainer" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/BubbleRow" unique_id=183008]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_bubble")
+
+[node name="BubbleLabel" type="Label" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/BubbleRow/BubblePanel" unique_id=183009]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.95, 0.98, 1)
+text = "你从来不知道什么是妥协，对吗？"
+autowrap_mode = 3
+custom_minimum_size = Vector2(320, 0)
+
+[node name="VBoxSpacer" type="Control" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox" unique_id=183010]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StartOptionsRow" type="HBoxContainer" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox" unique_id=183011]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 20
+size_flags_vertical = 8

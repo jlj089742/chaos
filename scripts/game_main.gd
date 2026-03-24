@@ -1,6 +1,7 @@
 extends Node2D
 
 const INTERACTION_SPOT_SCENE := preload("res://interaction_spot.tscn")
+const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 
 @onready var game_camera: Camera2D = $GameCamera
 @onready var map_sprite: Sprite2D = $MapSprite
@@ -12,21 +13,25 @@ const INTERACTION_SPOT_SCENE := preload("res://interaction_spot.tscn")
 @onready var interaction_popup: PanelContainer = $UI/InteractionPopup
 @onready var interaction_type_label: Label = $UI/InteractionPopup/InteractionPopupContent/InteractionTypeLabel
 @onready var interaction_end_button: Button = $UI/InteractionPopup/InteractionPopupContent/InteractionEndButton
+@onready var start_interaction_popup: Control = $UI/StartInteractionPopup
+@onready var start_options_row: HBoxContainer = $UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/StartOptionsRow
 
 var game_data: Dictionary = {}
 var year_events_config: Dictionary = {}
+var _start_repo_pool: Array = []
 var map_size := Vector2.ZERO
 
 func _ready() -> void:
 	game_data = SaveManager.load_save()
-	game_data["health"] = 50
 	year_events_config = YearEventConfig.load_year_events()
+	_start_repo_pool = StartRepoConfig.load_options()
 	_update_top_bar()
 	_setup_map_bounds()
 	_restore_or_spawn_interaction_spots()
 	_bind_ui_events()
 	settings_popup.visible = false
 	interaction_popup.visible = false
+	start_interaction_popup.visible = false
 
 func _setup_map_bounds() -> void:
 	var viewport_size := get_viewport_rect().size
@@ -54,7 +59,7 @@ func _bind_ui_events() -> void:
 
 func _update_top_bar() -> void:
 	year_value_label.text = str(int(game_data.get("year", 1)))
-	gold_value_label.text = str(int(game_data.get("gold", 1000)))
+	gold_value_label.text = str(int(game_data.get("gold", 200)))
 	health_value_label.text = str(int(game_data.get("health", 50)))
 
 func _on_settings_button_pressed() -> void:
@@ -72,7 +77,7 @@ func _on_exit_pressed() -> void:
 	get_tree().change_scene_to_file("res://mainPage.tscn")
 
 func _clamp_spot_position(pos: Vector2) -> Vector2:
-	var margin := maxf(48.0, minf(map_size.x, map_size.y) * 0.05)
+	var margin := INTERACTION_SPAWN_EDGE_MARGIN
 	var max_x := map_size.x - margin
 	var max_y := map_size.y - margin
 	if max_x <= margin or max_y <= margin:
@@ -156,7 +161,7 @@ func _spawn_year_interaction_spots() -> void:
 	if count <= 0 or typeof(build) != TYPE_ARRAY or build.is_empty():
 		_sync_interaction_spots_to_game_data()
 		return
-	var margin := maxf(48.0, minf(map_size.x, map_size.y) * 0.05)
+	var margin := INTERACTION_SPAWN_EDGE_MARGIN
 	var max_x := map_size.x - margin
 	var max_y := map_size.y - margin
 	if max_x <= margin or max_y <= margin:
@@ -174,11 +179,76 @@ func _spawn_year_interaction_spots() -> void:
 	_sync_interaction_spots_to_game_data()
 
 func _on_interaction_spot_clicked(spot_type: String) -> void:
+	if spot_type == "start":
+		_show_start_interaction_popup()
+		return
+	interaction_popup.visible = false
+	start_interaction_popup.visible = false
 	interaction_type_label.text = spot_type
 	interaction_popup.visible = true
 
 func _on_interaction_end_pressed() -> void:
 	interaction_popup.visible = false
+	_advance_year_and_respawn()
+
+func _advance_year_and_respawn() -> void:
 	game_data["year"] = int(game_data.get("year", 1)) + 1
 	_update_top_bar()
 	_spawn_year_interaction_spots()
+
+func _apply_attr_changes(changes: Array) -> void:
+	for item in changes:
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var d: Dictionary = item
+		var attr := str(d.get("changeAttr", ""))
+		if attr.is_empty():
+			continue
+		var delta := int(round(float(d.get("changeAmount", 0))))
+		var cur := int(round(float(game_data.get(attr, 0))))
+		game_data[attr] = cur + delta
+
+func _pick_three_start_options() -> Array:
+	if _start_repo_pool.is_empty():
+		return []
+	var indices: Array = range(_start_repo_pool.size())
+	indices.shuffle()
+	var n: int = mini(3, indices.size())
+	var out: Array = []
+	for i in n:
+		var entry: Variant = _start_repo_pool[indices[i]]
+		if entry is Dictionary:
+			out.append((entry as Dictionary).duplicate(true))
+	return out
+
+func _rebuild_start_option_buttons(choices: Array) -> void:
+	for c in start_options_row.get_children():
+		c.queue_free()
+	for entry in choices:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry as Dictionary
+		var btn := Button.new()
+		btn.text = str(d.get("context", ""))
+		btn.custom_minimum_size = Vector2(220, 52)
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.pressed.connect(_on_start_option_chosen.bind(d.duplicate(true)))
+		start_options_row.add_child(btn)
+
+func _show_start_interaction_popup() -> void:
+	var choices := _pick_three_start_options()
+	if choices.is_empty():
+		interaction_type_label.text = "start"
+		interaction_popup.visible = true
+		return
+	interaction_popup.visible = false
+	_rebuild_start_option_buttons(choices)
+	start_interaction_popup.visible = true
+
+func _on_start_option_chosen(entry: Dictionary) -> void:
+	var changes: Variant = entry.get("change", [])
+	if changes is Array:
+		_apply_attr_changes(changes)
+	_update_top_bar()
+	start_interaction_popup.visible = false
+	_advance_year_and_respawn()

@@ -4,7 +4,7 @@ class_name SaveManager
 const SAVE_PATH := "user://savegame.json"
 const DEFAULT_SAVE := {
 	"year": 1,
-	"gold": 1000,
+	"gold": 200,
 	"health": 50,
 	"interaction_spots": []
 }
