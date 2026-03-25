@@ -9,7 +9,7 @@ func _ready() -> void:
 
 func _on_start_new_game_pressed() -> void:
 	SaveManager.write_fresh_save()
-	get_tree().change_scene_to_file("res://gameMain.tscn")
+	get_tree().change_scene_to_file("res://roleSelect.tscn")
 
 func _on_view_save_pressed() -> void:
 	get_tree().change_scene_to_file("res://savePage.tscn")

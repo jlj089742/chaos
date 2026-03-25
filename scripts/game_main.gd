@@ -9,6 +9,8 @@ const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 @onready var year_value_label: Label = $UI/TopBar/TopBarContent/YearValueLabel
 @onready var gold_value_label: Label = $UI/TopBar/TopBarContent/GoldValueLabel
 @onready var health_value_label: Label = $UI/TopBar/TopBarContent/HealthValueLabel
+@onready var mana_value_label: Label = $UI/TopBar/TopBarContent/ManaValueLabel
+@onready var action_value_label: Label = $UI/TopBar/TopBarContent/ActionValueLabel
 @onready var settings_popup: PanelContainer = $UI/SettingsPopup
 @onready var interaction_popup: PanelContainer = $UI/InteractionPopup
 @onready var interaction_type_label: Label = $UI/InteractionPopup/InteractionPopupContent/InteractionTypeLabel
@@ -60,7 +62,9 @@ func _bind_ui_events() -> void:
 func _update_top_bar() -> void:
 	year_value_label.text = str(int(game_data.get("year", 1)))
 	gold_value_label.text = str(int(game_data.get("gold", 200)))
-	health_value_label.text = str(int(game_data.get("health", 50)))
+	health_value_label.text = "%d/%d" % [int(game_data.get("health", 50)), int(game_data.get("max_health", 50))]
+	mana_value_label.text = "%d/%d" % [int(game_data.get("mana", 24)), int(game_data.get("max_mana", 24))]
+	action_value_label.text = str(int(game_data.get("action", 3)))
 
 func _on_settings_button_pressed() -> void:
 	settings_popup.visible = true

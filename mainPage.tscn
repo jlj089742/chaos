@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://j2v07xk7v0qg"]
+[gd_scene format=3 uid="uid://j2v07xk7v0qg"]
 
 [ext_resource type="Texture2D" uid="uid://ctnpyc6mo2fma" path="res://resource/mainpage.png" id="1_bg"]
-[ext_resource type="Script" path="res://scripts/main_page.gd" id="2_main_page_script"]
+[ext_resource type="Script" uid="uid://dgucyp0b4um4f" path="res://scripts/main_page.gd" id="2_main_page_script"]
 
 [node name="MainPage" type="Control" unique_id=594841074]
 layout_mode = 3

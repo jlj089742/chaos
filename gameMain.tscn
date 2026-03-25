@@ -70,6 +70,22 @@ text = "当前血量:"
 layout_mode = 2
 text = "50"
 
+[node name="ManaTitleLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1999000001]
+layout_mode = 2
+text = "当前法力值:"
+
+[node name="ManaValueLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1999000002]
+layout_mode = 2
+text = "24/24"
+
+[node name="ActionTitleLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1999000003]
+layout_mode = 2
+text = "当前行动力:"
+
+[node name="ActionValueLabel" type="Label" parent="UI/TopBar/TopBarContent" unique_id=1999000004]
+layout_mode = 2
+text = "3"
+
 [node name="Spacer" type="Control" parent="UI/TopBar/TopBarContent" unique_id=872743177]
 layout_mode = 2
 size_flags_horizontal = 3
