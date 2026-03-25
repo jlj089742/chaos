@@ -1,10 +1,13 @@
-[gd_scene format=3 uid="uid://c4v7h2p7m3a2n"]
+[gd_scene format=3 uid="uid://bn665naswgtq"]
 
-[ext_resource type="Texture2D" uid="uid://bdjax47rh247" path="res://resource/mapbase.png" id="1_map_tex"]
-[ext_resource type="Texture2D" uid="uid://fbnxiu2px6iu" path="res://resource/wizard.png" id="2_wizard_tex"]
-[ext_resource type="Script" path="res://scripts/role_select_page.gd" id="3_role_select_script"]
+[ext_resource type="Texture2D" uid="uid://d4kibbfhfvxgb" path="res://resource/wizard.png" id="2_wizard_tex"]
+[ext_resource type="Script" uid="uid://b2ka8hnmh3q2y" path="res://scripts/role_select_page.gd" id="3_role_select_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bubble"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
 bg_color = Color(0.14, 0.15, 0.2, 0.96)
 border_width_left = 2
 border_width_top = 2
@@ -15,10 +18,6 @@ corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
-content_margin_left = 16
-content_margin_top = 12
-content_margin_right = 16
-content_margin_bottom = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.08, 0.1, 0.14, 0.9)
@@ -57,79 +56,60 @@ stretch_mode = 6
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 0.0
 offset_top = 26.0
-offset_right = 0.0
 offset_bottom = 54.0
 grow_horizontal = 2
+theme_override_colors/font_color = Color(0.94, 0.95, 0.98, 1)
 text = "选择角色"
 horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.94, 0.95, 0.98, 1)
-font_size = 24
 
 [node name="BubblePanel" type="PanelContainer" parent="." unique_id=1750023403]
 layout_mode = 1
-anchors_preset = 6
+anchors_preset = -1
 anchor_left = 0.65
-anchor_right = 0.95
 anchor_top = 0.12
+anchor_right = 0.95
 anchor_bottom = 0.55
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bubble")
 
 [node name="BubbleLabel" type="Label" parent="BubblePanel" unique_id=1750023404]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "术修（Wizard）：以法力为刃，掌控天地之元。"
-autowrap_mode = 3
+layout_mode = 2
 theme_override_colors/font_color = Color(0.94, 0.95, 0.98, 1)
+text = "术修（Wizard）：以法力为刃，掌控天地之元。"
 horizontal_alignment = 1
-vertical_alignment = 0
+autowrap_mode = 3
 
 [node name="BottomContainer" type="VBoxContainer" parent="." unique_id=1750023405]
 layout_mode = 1
-anchors_preset = 9
-anchor_left = 0.0
-anchor_right = 1.0
+anchors_preset = -1
 anchor_top = 0.65
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 16
 
 [node name="ConfirmButton" type="Button" parent="BottomContainer" unique_id=1750023406]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 text = "确认选择"
-visible = false
-custom_minimum_size = Vector2(0, 0)
 
 [node name="RoleButtonsRow" type="HBoxContainer" parent="BottomContainer" unique_id=1750023407]
 layout_mode = 2
-theme_override_constants/separation = 18
 size_flags_vertical = 3
+theme_override_constants/separation = 18
 
 [node name="WizardPanel" type="PanelContainer" parent="BottomContainer/RoleButtonsRow" unique_id=1750023408]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="WizardButton" type="Button" parent="BottomContainer/RoleButtonsRow/WizardPanel" unique_id=1750023409]
-layout_mode = 2
 custom_minimum_size = Vector2(260, 92)
-text = "术修（Wizard）"
+layout_mode = 2
+text = "言灵"
 autowrap_mode = 3
 
 [node name="MasterPanel" type="PanelContainer" parent="BottomContainer/RoleButtonsRow" unique_id=1750023410]
@@ -137,9 +117,9 @@ layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="MasterButton" type="Button" parent="BottomContainer/RoleButtonsRow/MasterPanel" unique_id=1750023411]
-layout_mode = 2
 custom_minimum_size = Vector2(260, 92)
-text = "道修（Master）"
+layout_mode = 2
+text = "大道"
 autowrap_mode = 3
 
 [node name="SwordPanel" type="PanelContainer" parent="BottomContainer/RoleButtonsRow" unique_id=1750023412]
@@ -147,23 +127,23 @@ layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="SwordButton" type="Button" parent="BottomContainer/RoleButtonsRow/SwordPanel" unique_id=1750023413]
-layout_mode = 2
 custom_minimum_size = Vector2(260, 92)
-text = "剑修（Sword）"
+layout_mode = 2
+text = "剑修"
 autowrap_mode = 3
 
 [node name="ConfirmButtonCorner" type="Button" parent="." unique_id=1750023414]
+custom_minimum_size = Vector2(520, 140)
 layout_mode = 1
-anchors_preset = 9
+anchors_preset = 3
 anchor_left = 1.0
-anchor_right = 1.0
 anchor_top = 1.0
+anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -560.0
 offset_top = -180.0
 offset_right = -40.0
 offset_bottom = -40.0
-text = "这就出发"
-custom_minimum_size = Vector2(520, 140)
+grow_vertical = 2
 theme_override_font_sizes/font_size = 28
-
+text = "这就出发"

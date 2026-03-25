@@ -1,7 +1,7 @@
 extends Control
 
-const ROLE_WIZARD := "Wizard" # 术修
-const ROLE_MASTER := "Master" # 道修
+const ROLE_WIZARD := "Wizard" # 言灵
+const ROLE_MASTER := "Master" # 大道
 const ROLE_SWORD := "Sword" # 剑修
 
 const WIZARD_TEX_PATH := "res://resource/wizard.png"
@@ -38,7 +38,7 @@ func _sync_ui_for_selected_role() -> void:
 
 	# Role introduction bubble.
 	if selected_role == ROLE_WIZARD:
-		bubble_label.text = "术修\n破坏力非凡\n生命50/50\n法力24/24\n行动力3"
+		bubble_label.text = "言灵\n破坏力非凡\n生命50/50\n法力24/24\n行动力3"
 	else:
 		bubble_label.text = "敬请期待"
 

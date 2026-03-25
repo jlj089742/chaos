@@ -1,10 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://c1o8mrararvep"]
+[gd_scene format=3 uid="uid://c1o8mrararvep"]
 
 [ext_resource type="Texture2D" uid="uid://brs1dcy1u4a2m" path="res://resource/mapbase.png" id="1_map_texture"]
 [ext_resource type="Script" uid="uid://ushukmat3k22" path="res://scripts/game_main.gd" id="2_game_main_script"]
 [ext_resource type="Texture2D" uid="uid://bdjax47rh247" path="res://resource/startbase.png" id="3_startbase"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bubble"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
 bg_color = Color(0.14, 0.15, 0.2, 0.96)
 border_width_left = 2
 border_width_top = 2
@@ -15,10 +19,6 @@ corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
-content_margin_left = 16
-content_margin_top = 12
-content_margin_right = 16
-content_margin_bottom = 12
 
 [node name="GameMain" type="Node2D" unique_id=1552953217]
 script = ExtResource("2_game_main_script")
@@ -164,7 +164,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
 
 [node name="Center" type="CenterContainer" parent="UI/StartInteractionPopup" unique_id=183002]
 layout_mode = 1
@@ -189,7 +188,6 @@ grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("3_startbase")
 expand_mode = 1
-stretch_mode = 0
 
 [node name="Content" type="MarginContainer" parent="UI/StartInteractionPopup/Center/DialogRoot" unique_id=183005]
 layout_mode = 1
@@ -218,11 +216,11 @@ size_flags_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_bubble")
 
 [node name="BubbleLabel" type="Label" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/BubbleRow/BubblePanel" unique_id=183009]
+custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.94, 0.95, 0.98, 1)
 text = "你从来不知道什么是妥协，对吗？"
 autowrap_mode = 3
-custom_minimum_size = Vector2(320, 0)
 
 [node name="VBoxSpacer" type="Control" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox" unique_id=183010]
 layout_mode = 2
@@ -230,6 +228,6 @@ size_flags_vertical = 3
 
 [node name="StartOptionsRow" type="HBoxContainer" parent="UI/StartInteractionPopup/Center/DialogRoot/Content/VBox" unique_id=183011]
 layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 20
 size_flags_vertical = 8
+theme_override_constants/separation = 20
+alignment = 1
