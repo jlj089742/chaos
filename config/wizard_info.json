@@ -8,7 +8,8 @@
 			"action_cost": 1,
 			"effect": {
 				"damage": 8
-			}
+			},
+			"target": 1
 		},
 		{
 			"card_id": 2,
@@ -18,17 +19,30 @@
 			"action_cost": 0,
 			"effect": {
 				"shield": 6
-			}
+			},
+			"target": 0
 		},
 		{
 			"card_id": 3,
 			"card_name": "落雷",
-			"desc":"造成12点伤害",
-			"mp_cost": 6,
-			"action_cost": 1,
+			"desc":"造成15点伤害",
+			"mp_cost": 9,
+			"action_cost": 2,
 			"effect": {
-				"damage": 12
-			}
+				"damage": 15
+			},
+			"target": 1
+		},
+		{
+			"card_id": 4,
+			"card_name": "调息",
+			"desc":"恢复12法力",
+			"mp_cost": 0,
+			"action_cost": 3,
+			"effect": {
+				"mp": 12
+			},
+			"target": 0
 		}
 	]
 }

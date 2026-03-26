@@ -1,9 +1,5 @@
 extends Control
 
-const ROLE_WIZARD := "Wizard" # 言灵
-const ROLE_MASTER := "Master" # 大道
-const ROLE_SWORD := "Sword" # 剑修
-
 const CARD_BASE_PATH := "res://resource/card_base.png"
 const CARD_SCALE := 1.0 / 3.0
 ## Control.layout_mode：锚点布局（引擎内为 LAYOUT_MODE_ANCHORS；GDScript 未暴露同名常量时用 1）
@@ -25,51 +21,74 @@ const _COST_BOX_T := (_COST_CIRCLE_CY - _COST_CIRCLE_R) / _CARD_REF_H
 const _COST_BOX_B := (_COST_CIRCLE_CY + _COST_CIRCLE_R) / _CARD_REF_H
 
 @onready var back_button: Button = $BackButton
-@onready var wizard_tab: Button = $MainMargin/MainVBox/TabRow/WizardTab
-@onready var master_tab: Button = $MainMargin/MainVBox/TabRow/MasterTab
-@onready var sword_tab: Button = $MainMargin/MainVBox/TabRow/SwordTab
 @onready var card_grid: GridContainer = $MainMargin/MainVBox/Scroll/MarginInner/ContentVBox/CardGrid
 @onready var empty_hint: Label = $MainMargin/MainVBox/Scroll/MarginInner/ContentVBox/EmptyHint
 
 var _card_base_tex: Texture2D = preload(CARD_BASE_PATH)
-var _current_role: String = ROLE_WIZARD
 
 func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
-	var tab_group := ButtonGroup.new()
-	wizard_tab.toggle_mode = true
-	master_tab.toggle_mode = true
-	sword_tab.toggle_mode = true
-	wizard_tab.button_group = tab_group
-	master_tab.button_group = tab_group
-	sword_tab.button_group = tab_group
-	wizard_tab.pressed.connect(func(): _select_role(ROLE_WIZARD))
-	master_tab.pressed.connect(func(): _select_role(ROLE_MASTER))
-	sword_tab.pressed.connect(func(): _select_role(ROLE_SWORD))
-	wizard_tab.button_pressed = true
-	_current_role = ROLE_WIZARD
-	_refresh_cards()
+	resized.connect(_on_view_resized)
+	_apply_grid_layout()
+	_render_deck()
+	call_deferred("_apply_grid_layout")
 
-func _select_role(role: String) -> void:
-	_current_role = role
-	_refresh_cards()
+func _on_back_pressed() -> void:
+	get_tree().change_scene_to_file("res://gameMain.tscn")
 
-func _refresh_cards() -> void:
+func _render_deck() -> void:
 	for c in card_grid.get_children():
 		c.queue_free()
-	empty_hint.visible = false
-	if _current_role != ROLE_WIZARD:
+
+	var save := SaveManager.load_save()
+	var raw_deck: Variant = save.get("player_deck", [])
+	if typeof(raw_deck) != TYPE_ARRAY:
+		raw_deck = []
+	var deck: Array = raw_deck as Array
+
+	if deck.is_empty():
 		empty_hint.visible = true
-		empty_hint.text = "敬请期待"
+		empty_hint.text = "暂无牌"
 		return
-	var cards := WizardInfoConfig.load_cards()
-	if cards.is_empty():
-		empty_hint.visible = true
-		empty_hint.text = "暂无卡牌数据"
-		return
-	for item in cards:
+
+	# 目前只实现言灵配置的卡池展示：用 card_id 映射配置里的卡牌信息
+	var all_cards := WizardInfoConfig.load_cards()
+	var by_id: Dictionary = {}
+	for item in all_cards:
 		if item is Dictionary:
-			card_grid.add_child(_create_card_widget(item as Dictionary))
+			var d := item as Dictionary
+			var cid := int(d.get("card_id", 0))
+			if cid != 0 and not by_id.has(cid):
+				by_id[cid] = d
+
+	empty_hint.visible = false
+	for id_any in deck:
+		var cid := int(id_any)
+		if not by_id.has(cid):
+			continue
+		card_grid.add_child(_create_card_widget(by_id[cid] as Dictionary))
+	_apply_grid_layout()
+
+func _on_view_resized() -> void:
+	_apply_grid_layout()
+
+func _apply_grid_layout() -> void:
+	var columns := 5
+	card_grid.columns = columns
+
+	var card_width := _card_base_tex.get_size().x * CARD_SCALE
+	if card_width <= 0.0:
+		return
+
+	var available_width := card_grid.size.x
+	if available_width <= 0.0:
+		return
+
+	# 让一行 5 张尽量排满：gap = (总宽 - 5*卡宽) / 4，并限制到较舒适区间
+	var raw_gap := (available_width - card_width * columns) / float(columns - 1)
+	var h_gap := int(round(clampf(raw_gap, 24.0, 64.0)))
+	card_grid.add_theme_constant_override("h_separation", h_gap)
+	card_grid.add_theme_constant_override("v_separation", 28)
 
 func _card_stat_int_str(card: Dictionary, key: String) -> String:
 	var v: Variant = card.get(key, 0)
@@ -134,7 +153,7 @@ func _create_card_widget(card: Dictionary) -> Control:
 	name_label.text = str(card.get("card_name", ""))
 	name_label.add_theme_font_size_override("font_size", name_font_sz)
 	name_label.add_theme_color_override("font_color", Color(1, 1, 1))
-	## 标题区：约在 y≈160 以下的装饰框内
+	# 标题区：约在 y≈160 以下的装饰框内
 	name_label.set_anchor(SIDE_LEFT, 85.0 / _CARD_REF_W)
 	name_label.set_anchor(SIDE_RIGHT, 650.0 / _CARD_REF_W)
 	name_label.set_anchor(SIDE_TOP, 160.0 / _CARD_REF_H)
@@ -150,7 +169,7 @@ func _create_card_widget(card: Dictionary) -> Control:
 	desc.text = str(card.get("desc", ""))
 	desc.add_theme_font_size_override("font_size", body_font_sz)
 	desc.add_theme_color_override("font_color", Color(0.94, 0.96, 1.0))
-	## 底部说明区：约在 y 615–935
+	# 底部说明区：约在 y 615–935
 	desc.set_anchor(SIDE_LEFT, 85.0 / _CARD_REF_W)
 	desc.set_anchor(SIDE_RIGHT, 650.0 / _CARD_REF_W)
 	desc.set_anchor(SIDE_TOP, 615.0 / _CARD_REF_H)
@@ -163,5 +182,3 @@ func _create_card_widget(card: Dictionary) -> Control:
 
 	return root
 
-func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://mainPage.tscn")

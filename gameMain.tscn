@@ -90,6 +90,10 @@ text = "3"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="DeckLibraryButton" type="Button" parent="UI/TopBar/TopBarContent" unique_id=999000001]
+layout_mode = 2
+text = "牌库"
+
 [node name="SettingsButton" type="Button" parent="UI/TopBar/TopBarContent" unique_id=924903108]
 layout_mode = 2
 text = "设置"

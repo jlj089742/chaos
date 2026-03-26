@@ -12,6 +12,7 @@ const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 @onready var mana_value_label: Label = $UI/TopBar/TopBarContent/ManaValueLabel
 @onready var action_value_label: Label = $UI/TopBar/TopBarContent/ActionValueLabel
 @onready var settings_popup: PanelContainer = $UI/SettingsPopup
+@onready var deck_button: Button = $UI/TopBar/TopBarContent/DeckLibraryButton
 @onready var interaction_popup: PanelContainer = $UI/InteractionPopup
 @onready var interaction_type_label: Label = $UI/InteractionPopup/InteractionPopupContent/InteractionTypeLabel
 @onready var interaction_end_button: Button = $UI/InteractionPopup/InteractionPopupContent/InteractionEndButton
@@ -29,6 +30,7 @@ var map_size := Vector2.ZERO
 
 func _ready() -> void:
 	game_data = SaveManager.load_save()
+	_ensure_player_deck_initialized()
 	year_events_config = YearEventConfig.load_year_events()
 	_start_repo_pool = StartRepoConfig.load_options()
 	_update_top_bar()
@@ -58,10 +60,44 @@ func _setup_map_bounds() -> void:
 
 func _bind_ui_events() -> void:
 	$UI/TopBar/TopBarContent/SettingsButton.pressed.connect(_on_settings_button_pressed)
+	deck_button.pressed.connect(_on_deck_button_pressed)
 	$UI/SettingsPopup/PopupContent/SaveGameButton.pressed.connect(_on_save_game_pressed)
 	$UI/SettingsPopup/PopupContent/ExitButton.pressed.connect(_on_exit_pressed)
 	$UI/SettingsPopup/PopupContent/CloseButton.pressed.connect(_on_close_settings_pressed)
 	interaction_end_button.pressed.connect(_on_interaction_end_pressed)
+
+func _seed_deck_for_role(role: String) -> Array:
+	# 言灵初始牌库：5张id1，5张id2，3张id3，2张id4（允许重复卡）
+	match role:
+		"Wizard":
+			return [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4]
+		_:
+			return []
+
+func _ensure_player_deck_initialized() -> void:
+	var deck_initialized := bool(game_data.get("deck_initialized", false))
+	var raw_deck: Variant = game_data.get("player_deck", [])
+
+	var deck_is_array := typeof(raw_deck) == TYPE_ARRAY
+	var deck_is_empty := (not deck_is_array) or (raw_deck as Array).is_empty()
+
+	# 兼容旧存档：如果还没跑过初始化，并且当前牌库为空/无效，则按角色规则补齐初始牌库。
+	if not deck_initialized and deck_is_empty:
+		var role := str(game_data.get("role", "Wizard"))
+		game_data["player_deck"] = _seed_deck_for_role(role)
+		game_data["deck_initialized"] = true
+		SaveManager.save_game(game_data)
+	elif not deck_initialized and deck_is_array and not deck_is_empty:
+		# 已经有牌库内容了，只是初始化标记缺失；补齐标记即可。
+		game_data["deck_initialized"] = true
+		SaveManager.save_game(game_data)
+
+func _on_deck_button_pressed() -> void:
+	# 进入牌库前同步存档数据，确保用户在不手动存档时也能看到最新牌库。
+	_sync_interaction_spots_to_game_data()
+	SaveManager.save_game(game_data)
+	settings_popup.visible = false
+	get_tree().change_scene_to_file("res://deckLibrary.tscn")
 
 func _update_top_bar() -> void:
 	year_value_label.text = str(int(game_data.get("year", 1)))

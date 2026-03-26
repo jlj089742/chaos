@@ -6,6 +6,10 @@ const DEFAULT_SAVE := {
 	"year": 1,
 	"gold": 200,
 	"role": "Wizard",
+	# 玩家牌库（允许重复卡，数组内存放 card_id）
+	"player_deck": [],
+	# 用于兼容旧存档：旧存档会触发首次初始化逻辑
+	"deck_initialized": false,
 	"max_health": 50,
 	"health": 50,
 	"max_mana": 24,
@@ -41,6 +45,11 @@ static func load_save() -> Dictionary:
 	if not data.has("role"):
 		data["role"] = DEFAULT_SAVE["role"]
 
+	if not data.has("player_deck") or typeof(data["player_deck"]) != TYPE_ARRAY:
+		data["player_deck"] = []
+	if not data.has("deck_initialized") or typeof(data["deck_initialized"]) != TYPE_BOOL:
+		data["deck_initialized"] = false
+
 	if not data.has("max_health"):
 		data["max_health"] = DEFAULT_SAVE["max_health"]
 	if not data.has("health"):
@@ -71,6 +80,9 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 	out["role"] = role
 	match role:
 		"Wizard":
+			# 言灵初始牌库：5张id1，5张id2，3张id3，2张id4（允许重复卡）
+			out["player_deck"] = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4]
+			out["deck_initialized"] = true
 			out["max_health"] = 50
 			out["health"] = 50
 			out["max_mana"] = 24
@@ -78,6 +90,8 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 			out["max_action"] = 3
 			out["action"] = 3
 		_:
+			out["player_deck"] = []
+			out["deck_initialized"] = true
 			# Keep default Wizard stats for now.
 			out["max_health"] = 50
 			out["health"] = 50
