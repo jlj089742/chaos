@@ -16,7 +16,11 @@ const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 @onready var interaction_type_label: Label = $UI/InteractionPopup/InteractionPopupContent/InteractionTypeLabel
 @onready var interaction_end_button: Button = $UI/InteractionPopup/InteractionPopupContent/InteractionEndButton
 @onready var start_interaction_popup: Control = $UI/StartInteractionPopup
+@onready var start_bubble_label: Label = $UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/BubbleRow/BubblePanel/BubbleLabel
 @onready var start_options_row: HBoxContainer = $UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/StartOptionsRow
+
+const START_DIALOG_PROMPT := "来了吗？"
+const START_DIALOG_AFTER_CHOICE := "如你所愿。"
 
 var game_data: Dictionary = {}
 var year_events_config: Dictionary = {}
@@ -245,14 +249,29 @@ func _show_start_interaction_popup() -> void:
 		interaction_type_label.text = "start"
 		interaction_popup.visible = true
 		return
+	start_bubble_label.text = START_DIALOG_PROMPT
 	interaction_popup.visible = false
 	_rebuild_start_option_buttons(choices)
 	start_interaction_popup.visible = true
+
+func _show_start_continue_only_ui() -> void:
+	for c in start_options_row.get_children():
+		c.queue_free()
+	var btn := Button.new()
+	btn.text = "继续"
+	btn.custom_minimum_size = Vector2(220, 52)
+	btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	btn.pressed.connect(_on_start_continue_pressed)
+	start_options_row.add_child(btn)
+
+func _on_start_continue_pressed() -> void:
+	start_interaction_popup.visible = false
+	_advance_year_and_respawn()
 
 func _on_start_option_chosen(entry: Dictionary) -> void:
 	var changes: Variant = entry.get("change", [])
 	if changes is Array:
 		_apply_attr_changes(changes)
 	_update_top_bar()
-	start_interaction_popup.visible = false
-	_advance_year_and_respawn()
+	start_bubble_label.text = START_DIALOG_AFTER_CHOICE
+	_show_start_continue_only_ui()

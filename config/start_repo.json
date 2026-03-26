@@ -9,7 +9,7 @@
 		]
 	},
 	"2": {
-		"context": "宫廷玉液酒，180一杯,生命值+30",
+		"context": "宫廷玉液酒，180一杯,生命上限+15",
 		"change": [
 			{
 				"changeAttr": "gold",
@@ -17,16 +17,23 @@
 			},
 			{
 				"changeAttr": "health",
-				"changeAmount": 30
+				"changeAmount": 15
+			},
+			{
+				"changeAttr": "max_health",
+				"changeAmount": 15
 			}
 		]
 	},
 	"3": {
-		"context": "我先躺了，生命值+10",
+		"context": "我先躺了，生命上限+6",
 		"change": [
 			{
 				"changeAttr": "health",
-				"changeAmount": 10
+				"changeAmount": 6
+			},{
+				"changeAttr": "max_health",
+				"changeAmount": 6
 			}
 		]
 	},
@@ -44,7 +51,7 @@
 		]
 	},
 	"5": {
-		"context": "《龙傲天的一生》，金币+500、生命+100",
+		"context": "《龙傲天的一生》，金币+500、生命上限+100",
 		"change": [
 			{
 				"changeAttr": "gold",
@@ -52,6 +59,10 @@
 			},
 			{
 				"changeAttr": "health",
+				"changeAmount": 100
+			},
+			{
+				"changeAttr": "max_health",
 				"changeAmount": 100
 			}
 		]

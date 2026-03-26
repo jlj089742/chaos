@@ -1,0 +1,34 @@
+{
+	"cards": [
+		{
+			"card_id": 1,
+			"card_name": "烈火",
+			"desc":"造成8点伤害",
+			"mp_cost": 4,
+			"action_cost": 1,
+			"effect": {
+				"damage": 8
+			}
+		},
+		{
+			"card_id": 2,
+			"card_name": "寒冰",
+			"desc":"增加6点护盾",
+			"mp_cost": 3,
+			"action_cost": 0,
+			"effect": {
+				"shield": 6
+			}
+		},
+		{
+			"card_id": 3,
+			"card_name": "落雷",
+			"desc":"造成12点伤害",
+			"mp_cost": 6,
+			"action_cost": 1,
+			"effect": {
+				"damage": 12
+			}
+		}
+	]
+}
