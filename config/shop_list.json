@@ -1,0 +1,61 @@
+{
+	"1": {
+		"shop_name": "通明",
+		"desc":"通明",
+		"price":80,
+		"type":"card",
+		"attr": {
+			"card_id":"5"
+		}
+	},
+	"2": {
+		"shop_name": "君焰",
+		"desc":"君焰",
+		"price":120,
+		"type":"card",
+		"attr": {
+			"card_id":"6"
+		}
+	},
+	"3": {
+		"shop_name": "小还丹",
+		"desc":"恢复生命10",
+		"price":30,
+		"type":"elixir",
+		"img":"res://resource/yaoping.png",
+		"attr": {
+			"health":10
+		}
+	},
+	"4": {
+		"shop_name": "金香玉",
+		"desc":"恢复生命50",
+		"price":100,
+		"type":"elixir",
+		"img":"res://resource/yaoping.png",
+		"attr": {
+			"health":50
+		}
+	},
+	"5": {
+		"shop_name": "破障丹",
+		"price":120,
+		"desc":"提高生命上限10",
+		"type":"elixir",
+		"img":"res://resource/yaoping.png",
+		"attr": {
+			"max_health":10,
+			"health":10
+		}
+	},
+	"6": {
+		"shop_name": "洗髓伐脉",
+		"desc":"移除一张牌",
+		"price":120,
+		"type":"remove",
+		"img":"res://resource/yaoping.png",
+		"attr": {
+			"remove":1
+		}
+	}
+}

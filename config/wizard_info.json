@@ -43,6 +43,28 @@
 				"mp": 12
 			},
 			"target": 0
+		},
+		{
+			"card_id": 5,
+			"card_name": "通明",
+			"desc":"下一次法术伤害翻倍",
+			"mp_cost": 4,
+			"action_cost": 1,
+			"effect": {
+				"double_damage": 1
+			},
+			"target": 0
+		},
+		{
+			"card_id": 6,
+			"card_name": "君焰",
+			"desc":"造成30点伤害",
+			"mp_cost": 18,
+			"action_cost": 3,
+			"effect": {
+				"damage": 30
+			},
+			"target": 1
 		}
 	]
 }

@@ -235,3 +235,207 @@ layout_mode = 2
 size_flags_vertical = 8
 theme_override_constants/separation = 20
 alignment = 1
+
+[node name="ShopPopup" type="PanelContainer" parent="UI" unique_id=183100]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -560.0
+offset_top = -340.0
+offset_right = 560.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="MarginContainer" parent="UI/ShopPopup" unique_id=183101]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/ShopPopup/Content" unique_id=183102]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="UI/ShopPopup/Content/VBox" unique_id=183103]
+layout_mode = 2
+text = "交易"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="UI/ShopPopup/Content/VBox" unique_id=183104]
+layout_mode = 2
+text = "点击商品购买"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Scroll" type="ScrollContainer" parent="UI/ShopPopup/Content/VBox" unique_id=183105]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ShopGrid" type="GridContainer" parent="UI/ShopPopup/Content/VBox/Scroll" unique_id=183106]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 18
+theme_override_constants/v_separation = 18
+columns = 3
+
+[node name="BottomRow" type="HBoxContainer" parent="UI/ShopPopup/Content/VBox" unique_id=183107]
+layout_mode = 2
+
+[node name="BottomSpacer" type="Control" parent="UI/ShopPopup/Content/VBox/BottomRow" unique_id=183108]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ShopContinueButton" type="Button" parent="UI/ShopPopup/Content/VBox/BottomRow" unique_id=183109]
+layout_mode = 2
+text = "继续"
+
+[node name="RemoveCardOverlay" type="Control" parent="UI/ShopPopup" unique_id=183110]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BgShade" type="ColorRect" parent="UI/ShopPopup/RemoveCardOverlay" unique_id=183111]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="Center" type="CenterContainer" parent="UI/ShopPopup/RemoveCardOverlay" unique_id=183112]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="UI/ShopPopup/RemoveCardOverlay/Center" unique_id=183113]
+custom_minimum_size = Vector2(860, 520)
+layout_mode = 2
+
+[node name="RemoveContent" type="MarginContainer" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel" unique_id=183114]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="RemoveVBox" type="VBoxContainer" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent" unique_id=183115]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RemoveTitle" type="Label" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox" unique_id=183116]
+layout_mode = 2
+text = "选择一张牌删除"
+horizontal_alignment = 1
+
+[node name="RemoveHint" type="Label" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox" unique_id=183117]
+layout_mode = 2
+text = "点击任意卡牌执行删除"
+horizontal_alignment = 1
+
+[node name="RemoveScroll" type="ScrollContainer" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox" unique_id=183118]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RemoveDeckGrid" type="GridContainer" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox/RemoveScroll" unique_id=183119]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 3
+
+[node name="RemoveBottom" type="HBoxContainer" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox" unique_id=183120]
+layout_mode = 2
+
+[node name="RemoveBottomSpacer" type="Control" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox/RemoveBottom" unique_id=183121]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RemoveCancelButton" type="Button" parent="UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox/RemoveBottom" unique_id=183122]
+layout_mode = 2
+text = "取消"
+
+[node name="DeckOverlay" type="Control" parent="UI" unique_id=183200]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Shade" type="ColorRect" parent="UI/DeckOverlay" unique_id=183201]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Root" type="MarginContainer" parent="UI/DeckOverlay" unique_id=183202]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 90
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 70
+
+[node name="Panel" type="PanelContainer" parent="UI/DeckOverlay/Root" unique_id=183203]
+layout_mode = 2
+
+[node name="Content" type="MarginContainer" parent="UI/DeckOverlay/Root/Panel" unique_id=183204]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/DeckOverlay/Root/Panel/Content" unique_id=183205]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TopRow" type="HBoxContainer" parent="UI/DeckOverlay/Root/Panel/Content/VBox" unique_id=183206]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/DeckOverlay/Root/Panel/Content/VBox/TopRow" unique_id=183207]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "当前牌库"
+
+[node name="DeckOverlayCloseButton" type="Button" parent="UI/DeckOverlay/Root/Panel/Content/VBox/TopRow" unique_id=183208]
+layout_mode = 2
+text = "关闭"
+
+[node name="DeckEmptyHint" type="Label" parent="UI/DeckOverlay/Root/Panel/Content/VBox" unique_id=183209]
+visible = false
+layout_mode = 2
+text = "暂无牌"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="UI/DeckOverlay/Root/Panel/Content/VBox" unique_id=183210]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DeckGrid" type="GridContainer" parent="UI/DeckOverlay/Root/Panel/Content/VBox/Scroll" unique_id=183211]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 22
+theme_override_constants/v_separation = 24
+columns = 5
