@@ -635,6 +635,7 @@ func _apply_shop_item_effect(item: Dictionary) -> bool:
 			var cur := int(game_data.get(key, 0))
 			var delta := int(round(float(attr2.get(k, 0))))
 			game_data[key] = cur + delta
+		_clamp_primary_resources()
 		return true
 
 	if t == "remove":
@@ -642,6 +643,15 @@ func _apply_shop_item_effect(item: Dictionary) -> bool:
 		return true
 
 	return false
+
+func _clamp_primary_resources() -> void:
+	var max_health := int(game_data.get("max_health", 0))
+	var max_mana := int(game_data.get("max_mana", 0))
+	var max_action := int(game_data.get("max_action", 0))
+
+	game_data["health"] = clampi(int(game_data.get("health", 0)), 0, max_health)
+	game_data["mana"] = clampi(int(game_data.get("mana", 0)), 0, max_mana)
+	game_data["action"] = clampi(int(game_data.get("action", 0)), 0, max_action)
 
 func _show_remove_overlay() -> void:
 	var deck_raw: Variant = game_data.get("player_deck", [])

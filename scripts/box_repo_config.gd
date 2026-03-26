@@ -28,4 +28,3 @@ static func load_options() -> Array:
 			continue
 		out.append(d)
 	return out
-

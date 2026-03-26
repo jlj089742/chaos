@@ -61,6 +61,111 @@
 			]
 		},
 		"5": {
+			"count": 5,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "40"
+				},
+				{
+					"type": "event",
+					"probability": "20"
+				},
+				{
+					"type": "box",
+					"probability": "10"
+				},
+				{
+					"type": "rest",
+					"probability": "30"
+				}
+			]
+		},
+		"6": {
+			"count": 5,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "40"
+				},
+				{
+					"type": "event",
+					"probability": "20"
+				},
+				{
+					"type": "box",
+					"probability": "10"
+				},
+				{
+					"type": "rest",
+					"probability": "30"
+				}
+			]
+		},
+		"7": {
+			"count": 5,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "40"
+				},
+				{
+					"type": "event",
+					"probability": "20"
+				},
+				{
+					"type": "box",
+					"probability": "10"
+				},
+				{
+					"type": "rest",
+					"probability": "30"
+				}
+			]
+		},
+		"8": {
+			"count": 5,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "40"
+				},
+				{
+					"type": "event",
+					"probability": "20"
+				},
+				{
+					"type": "box",
+					"probability": "10"
+				},
+				{
+					"type": "rest",
+					"probability": "30"
+				}
+			]
+		},
+		"9": {
+			"count": 5,
+			"build": [
+				{
+					"type": "battle",
+					"probability": "40"
+				},
+				{
+					"type": "event",
+					"probability": "20"
+				},
+				{
+					"type": "box",
+					"probability": "10"
+				},
+				{
+					"type": "rest",
+					"probability": "30"
+				}
+			]
+		},
+		"10": {
 			"count": 1,
 			"build": [
 				{

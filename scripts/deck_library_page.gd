@@ -181,4 +181,3 @@ func _create_card_widget(card: Dictionary) -> Control:
 	root.add_child(desc)
 
 	return root
-
