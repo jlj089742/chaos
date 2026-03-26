@@ -1,0 +1,36 @@
+{
+	"1": {
+		"context": "找到了75金币",
+		"change": [
+			{
+				"changeAttr": "gold",
+				"changeAmount": 75
+			}
+		]
+	},
+	"2": {
+		"context": "找到一块灵石，法力上限+6",
+		"change": [
+			{
+				"changeAttr": "max_mana",
+				"changeAmount": 6
+			},
+			{
+				"changeAttr": "mana",
+				"changeAmount": 6
+			}
+		]
+	},
+	"3": {
+		"context": "找到一枚丹药，生命上限+10",
+		"change": [
+			{
+				"changeAttr": "health",
+				"changeAmount": 10
+			},{
+				"changeAttr": "max_health",
+				"changeAmount": 10
+			}
+		]
+	}
+}

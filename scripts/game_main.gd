@@ -2,6 +2,8 @@ extends Node2D
 
 const INTERACTION_SPOT_SCENE := preload("res://interaction_spot.tscn")
 const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
+const START_TEX_PATH := "res://resource/startbase.png"
+const BOX_TEX_PATH := "res://resource/box.png"
 
 @onready var game_camera: Camera2D = $GameCamera
 @onready var map_sprite: Sprite2D = $MapSprite
@@ -17,6 +19,7 @@ const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 @onready var interaction_type_label: Label = $UI/InteractionPopup/InteractionPopupContent/InteractionTypeLabel
 @onready var interaction_end_button: Button = $UI/InteractionPopup/InteractionPopupContent/InteractionEndButton
 @onready var start_interaction_popup: Control = $UI/StartInteractionPopup
+@onready var start_popup_background: TextureRect = $UI/StartInteractionPopup/Center/DialogRoot/Background
 @onready var start_bubble_label: Label = $UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/BubbleRow/BubblePanel/BubbleLabel
 @onready var start_options_row: HBoxContainer = $UI/StartInteractionPopup/Center/DialogRoot/Content/VBox/StartOptionsRow
 
@@ -26,13 +29,17 @@ const START_DIALOG_AFTER_CHOICE := "如你所愿。"
 var game_data: Dictionary = {}
 var year_events_config: Dictionary = {}
 var _start_repo_pool: Array = []
+var _box_repo_pool: Array = []
 var map_size := Vector2.ZERO
+var _start_popup_start_tex: Texture2D = preload(START_TEX_PATH)
+var _start_popup_box_tex: Texture2D = preload(BOX_TEX_PATH)
 
 func _ready() -> void:
 	game_data = SaveManager.load_save()
 	_ensure_player_deck_initialized()
 	year_events_config = YearEventConfig.load_year_events()
 	_start_repo_pool = StartRepoConfig.load_options()
+	_box_repo_pool = BoxRepoConfig.load_options()
 	_update_top_bar()
 	_setup_map_bounds()
 	_restore_or_spawn_interaction_spots()
@@ -226,6 +233,9 @@ func _on_interaction_spot_clicked(spot_type: String) -> void:
 	if spot_type == "start":
 		_show_start_interaction_popup()
 		return
+	if spot_type == "box":
+		_show_box_interaction_popup()
+		return
 	interaction_popup.visible = false
 	start_interaction_popup.visible = false
 	interaction_type_label.text = spot_type
@@ -285,6 +295,7 @@ func _show_start_interaction_popup() -> void:
 		interaction_type_label.text = "start"
 		interaction_popup.visible = true
 		return
+	start_popup_background.texture = _start_popup_start_tex
 	start_bubble_label.text = START_DIALOG_PROMPT
 	interaction_popup.visible = false
 	_rebuild_start_option_buttons(choices)
@@ -310,4 +321,40 @@ func _on_start_option_chosen(entry: Dictionary) -> void:
 		_apply_attr_changes(changes)
 	_update_top_bar()
 	start_bubble_label.text = START_DIALOG_AFTER_CHOICE
+	_show_start_continue_only_ui()
+
+func _pick_one_box_option() -> Dictionary:
+	if _box_repo_pool.is_empty():
+		return {}
+	var idx := randi_range(0, _box_repo_pool.size() - 1)
+	var entry: Variant = _box_repo_pool[idx]
+	if entry is Dictionary:
+		return (entry as Dictionary).duplicate(true)
+	return {}
+
+func _show_box_interaction_popup() -> void:
+	start_popup_background.texture = _start_popup_box_tex
+	start_bubble_label.text = "一个宝箱，可以打开它"
+	interaction_popup.visible = false
+	for c in start_options_row.get_children():
+		c.queue_free()
+	var btn := Button.new()
+	btn.text = "打开"
+	btn.custom_minimum_size = Vector2(220, 52)
+	btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	btn.pressed.connect(_on_box_open_pressed)
+	start_options_row.add_child(btn)
+	start_interaction_popup.visible = true
+
+func _on_box_open_pressed() -> void:
+	var entry := _pick_one_box_option()
+	if entry.is_empty():
+		start_bubble_label.text = "宝箱里空空如也。"
+		_show_start_continue_only_ui()
+		return
+	var changes: Variant = entry.get("change", [])
+	if changes is Array:
+		_apply_attr_changes(changes)
+	_update_top_bar()
+	start_bubble_label.text = str(entry.get("context", "宝箱里有些收获。"))
 	_show_start_continue_only_ui()
