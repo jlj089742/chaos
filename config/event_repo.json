@@ -53,6 +53,28 @@
 					}
 				}
 			]
+		},
+		"3": {
+			"event": "上古封印",
+			"img": "res://resource/event/event3.png",
+			"desc": "一扇大门，门上有封印",
+			"choose": [
+				{
+					"desc": "参悟封印",
+					"after":"神奇的知识增加了，法力上限+6",
+					"effect": {
+						"max_mana": 6,
+						"mana": 6
+					}
+				},
+				{
+					"desc": "摧毁封印",
+					"after":"你放出了上古邪神，他说要好好感谢你",
+					"effect": {
+						"gold": 150
+					}
+				}
+			]
 		}
 	}
 }

@@ -65,6 +65,28 @@
 				"damage": 30
 			},
 			"target": 1
+		},
+		{
+			"card_id": 7,
+			"card_name": "正念",
+			"desc":"抽2张牌",
+			"mp_cost": 4,
+			"action_cost": 1,
+			"effect": {
+				"deaw": 2
+			},
+			"target": 0
+		},
+		{
+			"card_id": 8,
+			"card_name": "三昧真火",
+			"desc":"每回合结束，造成10点伤害",
+			"mp_cost": 12,
+			"action_cost": 2,
+			"effect": {
+				"turn_finish_damage": 10
+			},
+			"target": 0
 		}
 	]
 }

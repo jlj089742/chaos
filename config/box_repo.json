@@ -1,10 +1,10 @@
 {
 	"1": {
-		"context": "找到了75金币",
+		"context": "找到了120金币",
 		"change": [
 			{
 				"changeAttr": "gold",
-				"changeAmount": 75
+				"changeAmount": 120
 			}
 		]
 	},

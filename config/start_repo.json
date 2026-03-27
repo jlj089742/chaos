@@ -66,5 +66,47 @@
 				"changeAmount": 100
 			}
 		]
+	},
+	"6": {
+		"context": "大魔导师拉比克，法力上限+12",
+		"change": [
+			{
+				"changeAttr": "max_mana",
+				"changeAmount": 12
+			},{
+				"changeAttr": "mana",
+				"changeAmount": 12
+			}
+		]
+	},
+	"7": {
+		"context": "深海老六斯拉克，行动力+1，生命上限-15",
+		"change": [
+			{
+				"changeAttr": "action",
+				"changeAmount": 1
+			},{
+				"changeAttr": "max_health",
+				"changeAmount": -15
+			},{
+				"changeAttr": "health",
+				"changeAmount": -15
+			}
+		]
+	},
+	"8": {
+		"context": "小小，行动力-1，生命上限+40",
+		"change": [
+			{
+				"changeAttr": "action",
+				"changeAmount": -1
+			},{
+				"changeAttr": "max_health",
+				"changeAmount": 40
+			},{
+				"changeAttr": "health",
+				"changeAmount": 40
+			}
+		]
 	}
 }

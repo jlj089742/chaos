@@ -18,6 +18,24 @@
 		}
 	},
 	"3": {
+		"shop_name": "正念",
+		"desc":"正念",
+		"price":60,
+		"type":"card",
+		"attr": {
+			"card_id":"7"
+		}
+	},
+	"4": {
+		"shop_name": "三昧真火",
+		"desc":"三昧真火",
+		"price":100,
+		"type":"card",
+		"attr": {
+			"card_id":"8"
+		}
+	},
+	"5": {
 		"shop_name": "小还丹",
 		"desc":"恢复生命10",
 		"price":30,
@@ -27,7 +45,7 @@
 			"health":10
 		}
 	},
-	"4": {
+	"6": {
 		"shop_name": "金香玉",
 		"desc":"恢复生命50",
 		"price":100,
@@ -37,7 +55,7 @@
 			"health":50
 		}
 	},
-	"5": {
+	"7": {
 		"shop_name": "破障丹",
 		"price":120,
 		"desc":"提高生命上限10",
@@ -48,7 +66,29 @@
 			"health":10
 		}
 	},
-	"6": {
+	"8": {
+		"shop_name": "聚气丹",
+		"price":90,
+		"desc":"提高法力上限6",
+		"type":"elixir",
+		"img":"res://resource/yaoping.png",
+		"attr": {
+			"max_mana":6,
+			"mana":6
+		}
+	},
+	"9": {
+		"shop_name": "月饼",
+		"price":160,
+		"desc":"提高法力上限12",
+		"type":"elixir",
+		"img":"res://resource/yaoping.png",
+		"attr": {
+			"max_mana":12,
+			"mana":12
+		}
+	},
+	"10": {
 		"shop_name": "洗髓伐脉",
 		"desc":"移除一张牌",
 		"price":120,
