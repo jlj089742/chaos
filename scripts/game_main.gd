@@ -5,6 +5,7 @@ const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 const START_TEX_PATH := "res://resource/startbase.png"
 const BOX_TEX_PATH := "res://resource/box.png"
 const REST_TEX_PATH := "res://resource/rest.png"
+const EVENT_FALLBACK_TEX_PATH := "res://resource/startbase.png"
 const CARD_BASE_PATH := "res://resource/card_base.png"
 const CARD_SCALE := 1.0 / 3.0
 const SHOP_CARD_SCALE := 0.29
@@ -58,12 +59,14 @@ const START_DIALOG_AFTER_CHOICE := "如你所愿。"
 var game_data: Dictionary = {}
 var year_events_config: Dictionary = {}
 var _start_repo_pool: Array = []
+var _event_repo_pool: Array = []
 var _box_repo_pool: Array = []
 var _shop_repo_pool: Array = []
 var map_size := Vector2.ZERO
 var _start_popup_start_tex: Texture2D = preload(START_TEX_PATH)
 var _start_popup_box_tex: Texture2D = preload(BOX_TEX_PATH)
 var _start_popup_rest_tex: Texture2D = preload(REST_TEX_PATH)
+var _start_popup_event_fallback_tex: Texture2D = preload(EVENT_FALLBACK_TEX_PATH)
 var _card_base_tex: Texture2D = preload(CARD_BASE_PATH)
 var _shop_sold_indices: Dictionary = {}
 
@@ -72,6 +75,7 @@ func _ready() -> void:
 	_ensure_player_deck_initialized()
 	year_events_config = YearEventConfig.load_year_events()
 	_start_repo_pool = StartRepoConfig.load_options()
+	_event_repo_pool = EventRepoConfig.load_common_events()
 	_box_repo_pool = BoxRepoConfig.load_options()
 	_shop_repo_pool = ShopListConfig.load_items()
 	_update_top_bar()
@@ -302,6 +306,9 @@ func _on_interaction_spot_clicked(spot_type: String) -> void:
 	if spot_type == "rest":
 		_show_rest_interaction_popup()
 		return
+	if spot_type == "event":
+		_show_event_interaction_popup()
+		return
 	interaction_popup.visible = false
 	start_interaction_popup.visible = false
 	shop_popup.visible = false
@@ -389,6 +396,79 @@ func _on_start_option_chosen(entry: Dictionary) -> void:
 		_apply_attr_changes(changes)
 	_update_top_bar()
 	start_bubble_label.text = START_DIALOG_AFTER_CHOICE
+	_show_start_continue_only_ui()
+
+func _pick_one_common_event() -> Dictionary:
+	if _event_repo_pool.is_empty():
+		return {}
+	var idx := randi_range(0, _event_repo_pool.size() - 1)
+	var entry: Variant = _event_repo_pool[idx]
+	if entry is Dictionary:
+		return (entry as Dictionary).duplicate(true)
+	return {}
+
+func _apply_effect_map(effect_raw: Variant) -> void:
+	if not effect_raw is Dictionary:
+		return
+	var effect: Dictionary = effect_raw as Dictionary
+	for k in effect.keys():
+		var key := str(k)
+		if key.is_empty():
+			continue
+		var cur := int(round(float(game_data.get(key, 0))))
+		var delta := int(round(float(effect[k])))
+		game_data[key] = cur + delta
+	_clamp_primary_resources()
+
+func _show_event_interaction_popup() -> void:
+	var event_entry := _pick_one_common_event()
+	if event_entry.is_empty():
+		interaction_type_label.text = "event"
+		interaction_popup.visible = true
+		return
+
+	interaction_popup.visible = false
+	shop_popup.visible = false
+	start_interaction_popup.visible = true
+
+	var img_path := str(event_entry.get("img", ""))
+	var tex := load(img_path) as Texture2D if not img_path.is_empty() else null
+	if tex == null:
+		tex = _start_popup_event_fallback_tex
+	start_popup_background.texture = tex
+
+	var event_title := str(event_entry.get("event", "未知事件"))
+	var event_desc := str(event_entry.get("desc", ""))
+	start_bubble_label.text = "[%s]\n%s" % [event_title, event_desc]
+
+	for c in start_options_row.get_children():
+		c.queue_free()
+
+	var choose_raw: Variant = event_entry.get("choose", [])
+	if not choose_raw is Array:
+		_show_start_continue_only_ui()
+		return
+	var chooses: Array = choose_raw
+	var n := mini(2, chooses.size())
+	for i in n:
+		var option_raw: Variant = chooses[i]
+		if not option_raw is Dictionary:
+			continue
+		var option := option_raw as Dictionary
+		var btn := Button.new()
+		btn.text = str(option.get("desc", "选项"))
+		btn.custom_minimum_size = Vector2(260, 52)
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.pressed.connect(_on_event_option_chosen.bind(option.duplicate(true)))
+		start_options_row.add_child(btn)
+
+	if start_options_row.get_child_count() == 0:
+		_show_start_continue_only_ui()
+
+func _on_event_option_chosen(option: Dictionary) -> void:
+	_apply_effect_map(option.get("effect", {}))
+	_update_top_bar()
+	start_bubble_label.text = "你选择了：%s" % str(option.get("desc", ""))
 	_show_start_continue_only_ui()
 
 func _pick_one_box_option() -> Dictionary:

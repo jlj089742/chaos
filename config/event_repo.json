@@ -1,0 +1,25 @@
+{
+	"common": {
+		"1": {
+			"event": "幻境",
+			"img": "res://resource/event/illusion.png",
+			"desc": "眼前一亮，遍地的奇珍异宝",
+			"choose": [
+				{
+					"desc": "拿一件就走，金币+100",
+					"effect": {
+						"gold": 100
+					}
+				},
+				{
+					"desc": "我全都要，金币+300，生命上限-10",
+					"effect": {
+						"gold": 300,
+						"max_health": -10,
+						"health": -10
+					}
+				}
+			]
+		}
+	}
+}

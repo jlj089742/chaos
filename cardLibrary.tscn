@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://o7qvog7movlt"]
 
-[ext_resource type="Script" path="res://scripts/card_library_page.gd" id="1_card_lib"]
+[ext_resource type="Script" uid="uid://bwxlnpngklv5f" path="res://scripts/card_library_page.gd" id="1_card_lib"]
 
-[node name="CardLibrary" type="Control"]
+[node name="CardLibrary" type="Control" unique_id=266330380]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_card_lib")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1727272650]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.07, 0.08, 0.11, 1)
 
-[node name="BackButton" type="Button" parent="."]
+[node name="BackButton" type="Button" parent="." unique_id=366866426]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -32,7 +32,7 @@ offset_bottom = 60.0
 grow_horizontal = 0
 text = "返回"
 
-[node name="MainMargin" type="MarginContainer" parent="."]
+[node name="MainMargin" type="MarginContainer" parent="." unique_id=898531793]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -45,34 +45,34 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 28
 
-[node name="MainVBox" type="VBoxContainer" parent="MainMargin"]
+[node name="MainVBox" type="VBoxContainer" parent="MainMargin" unique_id=778224210]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="TabRow" type="HBoxContainer" parent="MainMargin/MainVBox"]
+[node name="TabRow" type="HBoxContainer" parent="MainMargin/MainVBox" unique_id=835123712]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="WizardTab" type="Button" parent="MainMargin/MainVBox/TabRow"]
+[node name="WizardTab" type="Button" parent="MainMargin/MainVBox/TabRow" unique_id=563039757]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "言灵"
 
-[node name="MasterTab" type="Button" parent="MainMargin/MainVBox/TabRow"]
+[node name="MasterTab" type="Button" parent="MainMargin/MainVBox/TabRow" unique_id=1470227010]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "大道"
 
-[node name="SwordTab" type="Button" parent="MainMargin/MainVBox/TabRow"]
+[node name="SwordTab" type="Button" parent="MainMargin/MainVBox/TabRow" unique_id=1288355893]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "剑修"
 
-[node name="Scroll" type="ScrollContainer" parent="MainMargin/MainVBox"]
+[node name="Scroll" type="ScrollContainer" parent="MainMargin/MainVBox" unique_id=297314111]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="MarginInner" type="MarginContainer" parent="MainMargin/MainVBox/Scroll"]
+[node name="MarginInner" type="MarginContainer" parent="MainMargin/MainVBox/Scroll" unique_id=1403721502]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -80,19 +80,19 @@ theme_override_constants/margin_left = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 16
 
-[node name="ContentVBox" type="VBoxContainer" parent="MainMargin/MainVBox/Scroll/MarginInner"]
+[node name="ContentVBox" type="VBoxContainer" parent="MainMargin/MainVBox/Scroll/MarginInner" unique_id=786671410]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="EmptyHint" type="Label" parent="MainMargin/MainVBox/Scroll/MarginInner/ContentVBox"]
+[node name="EmptyHint" type="Label" parent="MainMargin/MainVBox/Scroll/MarginInner/ContentVBox" unique_id=1527935184]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.74, 0.8, 1)
 text = "敬请期待"
 horizontal_alignment = 1
 
-[node name="CardGrid" type="GridContainer" parent="MainMargin/MainVBox/Scroll/MarginInner/ContentVBox"]
+[node name="CardGrid" type="GridContainer" parent="MainMargin/MainVBox/Scroll/MarginInner/ContentVBox" unique_id=948639844]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 20
