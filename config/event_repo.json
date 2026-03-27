@@ -1,22 +1,55 @@
 {
 	"common": {
 		"1": {
-			"event": "幻境",
+			"event": "藏宝窟",
 			"img": "res://resource/event/event1.png",
 			"desc": "眼前一亮，遍地的奇珍异宝",
 			"choose": [
 				{
-					"desc": "拿一件就走，金币+100",
+					"desc": "拿一件就走",
+					"after":"你选择见好就收，金币+100",
 					"effect": {
 						"gold": 100
 					}
 				},
 				{
-					"desc": "我全都要，金币+300，生命上限-10",
+					"desc": "我全都要",
+					"after":"你装满了每个口袋，但是触发了陷阱，金币+300，生命上限-10",
 					"effect": {
 						"gold": 300,
 						"max_health": -10,
 						"health": -10
+					}
+				}
+			]
+		},
+		"2": {
+			"event": "密室",
+			"img": "res://resource/event/event2.png",
+			"desc": "奇怪的密室，有宝珠、石狮子和一柄剑",
+			"choose": [
+				{
+					"desc": "摸一摸宝珠",
+					"after":"宝珠闪了闪熄灭了，你恢复20生命",
+					"effect": {
+						"health": 20
+					}
+				},
+				{
+					"desc": "摸一摸石狮子",
+					"after":"石狮子嘴里有一袋金币，金币+150",
+					"effect": {
+						"gold": 150
+					}
+				},
+				{
+					"desc": "尝试拔出这柄剑",
+					"after":"在触碰的一瞬间你感受到凌厉的杀意，生命上限-10，法力上限+12",
+					"effect": {
+						"max_health": -10,
+						"health": -10,
+						"max_mana": 12,
+						"mana": 12
 					}
 				}
 			]

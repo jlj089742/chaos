@@ -449,8 +449,7 @@ func _show_event_interaction_popup() -> void:
 		_show_start_continue_only_ui()
 		return
 	var chooses: Array = choose_raw
-	var n := mini(2, chooses.size())
-	for i in n:
+	for i in chooses.size():
 		var option_raw: Variant = chooses[i]
 		if not option_raw is Dictionary:
 			continue
@@ -468,7 +467,10 @@ func _show_event_interaction_popup() -> void:
 func _on_event_option_chosen(option: Dictionary) -> void:
 	_apply_effect_map(option.get("effect", {}))
 	_update_top_bar()
-	start_bubble_label.text = "你选择了：%s" % str(option.get("desc", ""))
+	var after_text := str(option.get("after", ""))
+	if after_text.is_empty():
+		after_text = "你选择了：%s" % str(option.get("desc", ""))
+	start_bubble_label.text = after_text
 	_show_start_continue_only_ui()
 
 func _pick_one_box_option() -> Dictionary:
