@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c1o8mrararvep"]
 
-[ext_resource type="Texture2D" uid="uid://brs1dcy1u4a2m" path="res://resource/mapbase.png" id="1_map_texture"]
+[ext_resource type="Texture2D" uid="uid://dndyffpocj53u" path="res://resource/mapbase2.png" id="2_2b4uk"]
 [ext_resource type="Script" uid="uid://ushukmat3k22" path="res://scripts/game_main.gd" id="2_game_main_script"]
 [ext_resource type="Texture2D" uid="uid://bdjax47rh247" path="res://resource/startbase.png" id="3_startbase"]
 
@@ -25,7 +25,7 @@ script = ExtResource("2_game_main_script")
 
 [node name="MapSprite" type="Sprite2D" parent="." unique_id=731796186]
 position = Vector2(1728, 972)
-texture = ExtResource("1_map_texture")
+texture = ExtResource("2_2b4uk")
 
 [node name="InteractionSpots" type="Node2D" parent="." unique_id=734568841]
 

@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://j2v07xk7v0qg"]
 
-[ext_resource type="Texture2D" uid="uid://ctnpyc6mo2fma" path="res://resource/mainpage.png" id="1_bg"]
+[ext_resource type="Texture2D" uid="uid://bk2suvwk8nxd5" path="res://resource/mainpage2.png" id="2_0fh2u"]
 [ext_resource type="Script" uid="uid://dgucyp0b4um4f" path="res://scripts/main_page.gd" id="2_main_page_script"]
+[ext_resource type="Texture2D" uid="uid://de6bweofexfud" path="res://resource/title.png" id="3_title_texture"]
 
 [node name="MainPage" type="Control" unique_id=594841074]
 layout_mode = 3
@@ -20,9 +21,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("1_bg")
+texture = ExtResource("2_0fh2u")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="TitleImage" type="TextureRect" parent="." unique_id=205441001]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -433.0
+offset_top = 60.0
+offset_right = 420.0
+offset_bottom = 397.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("3_title_texture")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CenterButtons" type="VBoxContainer" parent="." unique_id=448920738]
 layout_mode = 1

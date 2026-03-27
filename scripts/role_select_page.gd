@@ -4,7 +4,7 @@ const ROLE_WIZARD := "Wizard" # 言灵
 const ROLE_MASTER := "Master" # 大道
 const ROLE_SWORD := "Sword" # 剑修
 
-const WIZARD_TEX_PATH := "res://resource/wizard.png"
+const WIZARD_TEX_PATH := "res://resource/wizard2.png"
 const MASTER_TEX_PATH := "res://resource/master.png"
 const SWORD_TEX_PATH := "res://resource/sword.png"
 
