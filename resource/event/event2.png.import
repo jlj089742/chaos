@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ck322v5lpsvjk"
-path="res://.godot/imported/illusion.png-eed5a5dc6ded98312d7311e56fa3fabc.ctex"
+uid="uid://btua5klvdlhti"
+path="res://.godot/imported/event2.png-cce990c1642fee6789201fbbb204c747.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resource/event/illusion.png"
-dest_files=["res://.godot/imported/illusion.png-eed5a5dc6ded98312d7311e56fa3fabc.ctex"]
+source_file="res://resource/event/event2.png"
+dest_files=["res://.godot/imported/event2.png-cce990c1642fee6789201fbbb204c747.ctex"]
 
 [params]
 

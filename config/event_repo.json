@@ -2,7 +2,7 @@
 	"common": {
 		"1": {
 			"event": "幻境",
-			"img": "res://resource/event/illusion.png",
+			"img": "res://resource/event/event1.png",
 			"desc": "眼前一亮，遍地的奇珍异宝",
 			"choose": [
 				{
