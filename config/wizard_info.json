@@ -36,7 +36,7 @@
 		{
 			"card_id": 4,
 			"card_name": "调息",
-			"desc":"恢复12法力",
+			"desc":"恢复20法力",
 			"mp_cost": 0,
 			"action_cost": 1,
 			"effect": {
@@ -84,7 +84,12 @@
 			"mp_cost": 12,
 			"action_cost": 2,
 			"effect": {
-				"turn_finish_damage": 10
+				"buff": {
+					"buff_name":"三昧真火",
+					"buff_desc":"每回合结束，造成10点伤害",
+					"buff_type":"turn_finish",
+					"damage":10
+				}
 			},
 			"target": 0
 		}

@@ -38,11 +38,21 @@ grow_horizontal = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="EnemyTexture" type="TextureRect" parent="MonsterRow"]
+[node name="EnemyAvatarColumn" type="VBoxContainer" parent="MonsterRow"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="EnemyTexture" type="TextureRect" parent="MonsterRow/EnemyAvatarColumn"]
 custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
+
+[node name="EnemyBuffRow" type="HBoxContainer" parent="MonsterRow/EnemyAvatarColumn"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
 
 [node name="EnemyInfo" type="VBoxContainer" parent="MonsterRow"]
 layout_mode = 2
@@ -126,6 +136,11 @@ custom_minimum_size = Vector2(88, 88)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
+
+[node name="PlayerBuffRow" type="HBoxContainer" parent="PlayerRow/PlayerAvatarColumn"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
 
 [node name="PlayerInfo" type="VBoxContainer" parent="PlayerRow"]
 layout_mode = 2

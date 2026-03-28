@@ -9,16 +9,19 @@ const _DRAW_ENTER_SEC := 0.26
 const _DRAW_SHOWCASE_HOLD_SEC := 0.18
 const _DRAW_TO_HAND_SEC := 0.3
 const _DRAW_OFFSCREEN_PAD := 64.0
+const _STAT_TWEEN_SEC := 1.0
 
 @onready var _play_zone: Control = $PlayZone
 @onready var _hand: HBoxContainer = $HandContainer
 @onready var _draw_anim_layer: Control = $DrawAnimLayer
 @onready var _drag_layer: Control = $DragLayer
 @onready var _end_turn: Button = $EndTurnButton
-@onready var _enemy_tex: TextureRect = $MonsterRow/EnemyTexture
+@onready var _enemy_tex: TextureRect = $MonsterRow/EnemyAvatarColumn/EnemyTexture
+@onready var _enemy_buff_row: HBoxContainer = $MonsterRow/EnemyAvatarColumn/EnemyBuffRow
 @onready var _enemy_name: Label = $MonsterRow/EnemyInfo/EnemyNameLabel
 @onready var _enemy_hp: Label = $MonsterRow/EnemyInfo/EnemyHealthLabel
 @onready var _player_tex: TextureRect = $PlayerRow/PlayerAvatarColumn/PlayerTexture
+@onready var _player_buff_row: HBoxContainer = $PlayerRow/PlayerAvatarColumn/PlayerBuffRow
 @onready var _player_tip_bubble: PanelContainer = $PlayerRow/PlayerAvatarColumn/PlayerTipBubble
 @onready var _player_tip_label: Label = $PlayerRow/PlayerAvatarColumn/PlayerTipBubble/PlayerTipLabel
 @onready var _player_hp: Label = $PlayerRow/PlayerInfo/PlayerHealthLabel
@@ -48,9 +51,12 @@ var _drag_pickup_offset: Vector2 = Vector2.ZERO
 var _drag_hand_index: int = 0
 
 var _next_spell_damage_double: bool = false
-var _pending_turn_finish_damage: Array = []
+## 战斗内 buff，不入存档；双方各一列表
+var _player_buffs: Array = []
+var _enemy_buffs: Array = []
 var _play_resolve_in_progress: bool = false
 var _tip_tween: Tween = null
+var _stat_display_tween: Tween = null
 
 func setup(main: Node) -> void:
 	_game_main = main
@@ -126,7 +132,8 @@ func start_battle() -> void:
 	_discard.clear()
 	_hand_entries.clear()
 	_next_spell_damage_double = false
-	_pending_turn_finish_damage.clear()
+	_player_buffs.clear()
+	_enemy_buffs.clear()
 	_player_turn = true
 
 	for c in _hand.get_children():
@@ -137,13 +144,23 @@ func start_battle() -> void:
 	_sync_player_portrait()
 	_refresh_monster_ui()
 	_refresh_player_labels()
+	_refresh_buff_ui()
 	if _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
 	set_process(false)
 
 
+func _on_monster_defeated() -> void:
+	end_battle()
+	if _game_main != null and _game_main.has_method("show_battle_loot_popup"):
+		await _game_main.show_battle_loot_popup()
+
+
 func end_battle() -> void:
 	print("end_battle!")
+	if _stat_display_tween != null and _stat_display_tween.is_valid():
+		_stat_display_tween.kill()
+	_stat_display_tween = null
 	if _tip_tween != null and _tip_tween.is_valid():
 		_tip_tween.kill()
 	_tip_tween = null
@@ -223,6 +240,51 @@ func _refresh_player_labels() -> void:
 	_player_act.text = "行动力 %d" % act
 
 
+func _battle_stat_snapshot_before_pay() -> Dictionary:
+	return {
+		"monster_hp": _monster_hp,
+		"battle_shield": _battle_shield,
+		"health": int(_game_data.get("health", 0)),
+		"mana": int(_game_data.get("mana", 0)),
+		"action": int(_game_data.get("action", 0)),
+	}
+
+
+func _tween_battle_stat_labels_if_changed(snap: Dictionary, duration: float) -> void:
+	var mh := int(_game_data.get("max_health", 1))
+	var mm := int(_game_data.get("max_mana", 1))
+	var e_mon := _monster_hp
+	var e_sh := _battle_shield
+	var e_hp := int(_game_data.get("health", 0))
+	var e_mn := int(_game_data.get("mana", 0))
+	var e_ac := int(_game_data.get("action", 0))
+	var s_mon := int(snap.get("monster_hp", 0))
+	var s_sh := int(snap.get("battle_shield", 0))
+	var s_hp := int(snap.get("health", 0))
+	var s_mn := int(snap.get("mana", 0))
+	var s_ac := int(snap.get("action", 0))
+
+	if s_mon == e_mon and s_sh == e_sh and s_hp == e_hp and s_mn == e_mn and s_ac == e_ac:
+		return
+
+	if _stat_display_tween != null and _stat_display_tween.is_valid():
+		_stat_display_tween.kill()
+	_stat_display_tween = create_tween()
+	_stat_display_tween.set_trans(Tween.TRANS_LINEAR)
+	var update_stats := func(alpha: float) -> void:
+		var a := clampf(alpha, 0.0, 1.0)
+		_enemy_hp.text = "生命: %d" % int(round(lerpf(float(s_mon), float(e_mon), a)))
+		_player_shield.text = "护盾 %d" % int(round(lerpf(float(s_sh), float(e_sh), a)))
+		_player_hp.text = "生命 %d/%d" % [int(round(lerpf(float(s_hp), float(e_hp), a))), mh]
+		_player_mana.text = "法力 %d/%d" % [int(round(lerpf(float(s_mn), float(e_mn), a))), mm]
+		_player_act.text = "行动力 %d" % int(round(lerpf(float(s_ac), float(e_ac), a)))
+	_stat_display_tween.tween_method(update_stats, 0.0, 1.0, duration)
+	await _stat_display_tween.finished
+	_stat_display_tween = null
+	_refresh_player_labels()
+	_refresh_monster_ui()
+
+
 func _draw_cards(n: int) -> void:
 	for _i in n:
 		if _hand_entries.size() >= HAND_MAX:
@@ -285,7 +347,7 @@ func _animate_draw_card_to_hand(cid: int) -> void:
 
 
 func _on_hand_card_gui_input(event: InputEvent, btn: Button, cid: int) -> void:
-	if not _player_turn:
+	if not _player_turn or _play_resolve_in_progress:
 		return
 	if not (event is InputEventMouseButton):
 		return
@@ -302,6 +364,8 @@ func _on_hand_card_gui_input(event: InputEvent, btn: Button, cid: int) -> void:
 
 
 func _begin_drag(btn: Button, cid: int) -> void:
+	if _play_resolve_in_progress:
+		return
 	_drag_hand_index = btn.get_index()
 	_drag_pickup_offset = btn.global_position - get_global_mouse_position()
 	_hand.remove_child(btn)
@@ -328,7 +392,7 @@ func _cancel_drag() -> void:
 
 
 func _resolve_drag_click_at_global_mouse() -> void:
-	if _dragging_button == null:
+	if _dragging_button == null or _play_resolve_in_progress:
 		return
 	var gp := get_global_mouse_position()
 	if _play_zone.get_global_rect().has_point(gp):
@@ -358,25 +422,51 @@ func _try_play_selected_card() -> void:
 		return
 
 	_play_resolve_in_progress = true
-	_game_data["mana"] = mp - mp_need
-	_game_data["action"] = act - act_need
 
-	await _apply_battle_card_effect(card)
-
-	_remove_hand_entry_for_button(_dragging_button)
-	_dragging_button.queue_free()
+	var played_btn := _dragging_button
+	var played_cid := _dragging_cid
 	_dragging_button = null
 	_dragging_cid = 0
 	set_process(false)
 
+	played_btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_drag_layer.remove_child(played_btn)
+	_play_zone.add_child(played_btn)
+	played_btn.z_index = 4
+	await get_tree().process_frame
+	var psz: Vector2 = played_btn.size
+	if psz == Vector2.ZERO:
+		psz = played_btn.custom_minimum_size
+	var pcm := _play_zone.get_global_rect()
+	played_btn.global_position = pcm.get_center() - psz * 0.5
+
+	var snap := _battle_stat_snapshot_before_pay()
+	_game_data["mana"] = mp - mp_need
+	_game_data["action"] = act - act_need
+
+	await _apply_battle_card_effect(card)
+	await _tween_battle_stat_labels_if_changed(snap, _STAT_TWEEN_SEC)
+
+	_remove_hand_entry_for_button(played_btn)
+	played_btn.queue_free()
+
 	_discard.append(int(card.get("card_id", 0)))
 	_refresh_player_labels()
+	_refresh_monster_ui()
 	if _game_main != null and _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
-	_refresh_monster_ui()
 
 	if _monster_hp <= 0:
+		await _on_monster_defeated()
+		_play_resolve_in_progress = false
+		return
+
+	if int(_game_data.get("health", 0)) <= 0:
 		end_battle()
+		if _game_main != null and _game_main.has_method("play_player_death_sequence"):
+			await _game_main.play_player_death_sequence()
+		_play_resolve_in_progress = false
+		return
 
 	_play_resolve_in_progress = false
 
@@ -390,11 +480,11 @@ func _remove_hand_entry_for_button(btn: Button) -> void:
 
 
 func _on_end_turn_pressed() -> void:
-	if not _player_turn:
+	if not _player_turn or _play_resolve_in_progress:
 		return
 	if _dragging_button != null:
 		_cancel_drag()
-	_resolve_turn_end_damage_preview()
+	_trigger_buffs_at_player_turn_end()
 	_player_turn = false
 
 	if _monster_hp > 0:
@@ -407,21 +497,88 @@ func _on_end_turn_pressed() -> void:
 
 	if _monster_hp <= 0:
 		print("monster fail")
-		end_battle()
+		await _on_monster_defeated()
 		return
 
 	if int(_game_data.get("health", 0)) <= 0:
 		print("gamer fail")
 		end_battle()
+		if _game_main != null and _game_main.has_method("play_player_death_sequence"):
+			await _game_main.play_player_death_sequence()
 		return
 
 	await _begin_player_turn()
 
 
-func _resolve_turn_end_damage_preview() -> void:
-	for v in _pending_turn_finish_damage:
-		_monster_hp = maxi(0, _monster_hp - int(v))
-	_pending_turn_finish_damage.clear()
+## 玩家回合结束时：仅结算挂在玩家身上的 turn_finish buff。
+func _trigger_buffs_at_player_turn_end() -> void:
+	for b in _player_buffs:
+		if b is Dictionary and str((b as Dictionary).get("buff_type", "")) == "turn_finish":
+			_trigger_buff_effect(b as Dictionary, true)
+	_refresh_buff_ui()
+
+
+## 敌人回合结束时：仅结算挂在敌人身上的 turn_finish buff。
+func _trigger_buffs_at_enemy_turn_end() -> void:
+	for b in _enemy_buffs:
+		if b is Dictionary and str((b as Dictionary).get("buff_type", "")) == "turn_finish":
+			_trigger_buff_effect(b as Dictionary, false)
+	_refresh_buff_ui()
+
+
+## 根据 buff 的 buff_type 执行效果；owner_is_player 表示该 buff 挂在玩家(true)或敌人(false)身上。
+func _trigger_buff_effect(buff: Dictionary, owner_is_player: bool) -> void:
+	var bt := str(buff.get("buff_type", ""))
+	match bt:
+		"turn_finish":
+			var dmg := int(round(float(buff.get("damage", 0))))
+			if dmg <= 0:
+				return
+			if owner_is_player:
+				_monster_hp = maxi(0, _monster_hp - dmg)
+			else:
+				_apply_damage_to_player(dmg)
+		_:
+			pass
+
+
+func _refresh_buff_ui() -> void:
+	_refresh_buff_row(_player_buff_row, _player_buffs)
+	_refresh_buff_row(_enemy_buff_row, _enemy_buffs)
+
+
+func _refresh_buff_row(row: HBoxContainer, buffs: Array) -> void:
+	for c in row.get_children():
+		c.queue_free()
+	for item in buffs:
+		if not item is Dictionary:
+			continue
+		var bd: Dictionary = item
+		var dot := Panel.new()
+		dot.custom_minimum_size = Vector2(22, 22)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.92, 0.42, 0.22, 1.0)
+		sb.set_corner_radius_all(11)
+		dot.add_theme_stylebox_override("panel", sb)
+		var name_part := str(bd.get("buff_name", ""))
+		var desc_part := str(bd.get("buff_desc", ""))
+		var tip := name_part
+		if not desc_part.is_empty():
+			tip = name_part if name_part.is_empty() else name_part + "\n"
+			tip += desc_part
+		dot.tooltip_text = tip
+		dot.mouse_filter = Control.MOUSE_FILTER_STOP
+		row.add_child(dot)
+
+
+func _append_buff_for_card_target(card: Dictionary, buff: Dictionary) -> void:
+	var tgt := int(card.get("target", 0))
+	var b: Dictionary = buff.duplicate(true)
+	if tgt == 1:
+		_enemy_buffs.append(b)
+	else:
+		_player_buffs.append(b)
+	_refresh_buff_ui()
 
 
 func _monster_turn() -> void:
@@ -429,6 +586,7 @@ func _monster_turn() -> void:
 	if _monster_hp <= 0:
 		return
 	_apply_damage_to_player(8)
+	_trigger_buffs_at_enemy_turn_end()
 
 
 ## 玩家受到伤害：先扣战斗护盾，溢出再扣血量（护盾不入存档）。
@@ -485,6 +643,15 @@ func _apply_battle_card_effect(card: Dictionary) -> void:
 				var n := int(round(float(v)))
 				await _draw_cards(n)
 			"turn_finish_damage":
-				_pending_turn_finish_damage.append(int(round(float(v))))
+				var amt_tf := int(round(float(v)))
+				_append_buff_for_card_target(card, {
+					"buff_name": "回合结束伤害",
+					"buff_desc": "回合结束时造成%d点伤害" % amt_tf,
+					"buff_type": "turn_finish",
+					"damage": amt_tf,
+				})
+			"buff":
+				if v is Dictionary:
+					_append_buff_for_card_target(card, v as Dictionary)
 			_:
 				pass

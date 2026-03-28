@@ -2,6 +2,7 @@ extends Node2D
 
 const INTERACTION_SPOT_SCENE := preload("res://interaction_spot.tscn")
 const BATTLE_OVERLAY_SCENE := preload("res://battle_overlay.tscn")
+const MAIN_PAGE_SCENE := "res://mainPage.tscn"
 const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 const START_TEX_PATH := "res://resource/startbase.png"
 const BOX_TEX_PATH := "res://resource/box.png"
@@ -53,6 +54,13 @@ const _COST_BOX_B := (_COST_CIRCLE_CY + _COST_CIRCLE_R) / _CARD_REF_H
 @onready var remove_hint_label: Label = $UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox/RemoveHint
 @onready var remove_deck_grid: GridContainer = $UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox/RemoveScroll/RemoveDeckGrid
 @onready var remove_cancel_button: Button = $UI/ShopPopup/RemoveCardOverlay/Center/Panel/RemoveContent/RemoveVBox/RemoveBottom/RemoveCancelButton
+@onready var loot_popup: PanelContainer = $UI/LootPopup
+@onready var loot_list_vbox: VBoxContainer = $UI/LootPopup/LootMargin/LootVBox/LootListVBox
+@onready var loot_continue_button: Button = $UI/LootPopup/LootMargin/LootVBox/LootContinueButton
+@onready var loot_card_pick_overlay: Control = $UI/LootCardPickOverlay
+@onready var loot_pick_cards_hbox: HBoxContainer = $UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox/LootPickCardsHBox
+@onready var loot_pick_abandon_button: Button = $UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox/LootPickBottom/LootPickAbandonButton
+@onready var loot_pick_hint: Label = $UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox/LootPickHint
 
 const START_DIALOG_PROMPT := "来了吗？"
 const START_DIALOG_AFTER_CHOICE := "如你所愿。"
@@ -71,6 +79,12 @@ var _start_popup_event_fallback_tex: Texture2D = preload(EVENT_FALLBACK_TEX_PATH
 var _card_base_tex: Texture2D = preload(CARD_BASE_PATH)
 var _shop_sold_indices: Dictionary = {}
 var _battle_overlay: Node = null
+var _player_death_sequence_active: bool = false
+var _loot_gold_claimed: bool = false
+var _loot_card_resolved: bool = false
+var _loot_card_row_button: Button = null
+
+signal battle_loot_popup_closed
 
 func _ready() -> void:
 	game_data = SaveManager.load_save()
@@ -91,6 +105,8 @@ func _ready() -> void:
 	shop_popup.visible = false
 	remove_overlay.visible = false
 	deck_overlay.visible = false
+	loot_popup.visible = false
+	loot_card_pick_overlay.visible = false
 	_battle_overlay = BATTLE_OVERLAY_SCENE.instantiate()
 	$UI.add_child(_battle_overlay)
 	if _battle_overlay.has_method("setup"):
@@ -140,6 +156,8 @@ func _bind_ui_events() -> void:
 	shop_continue_button.pressed.connect(_on_shop_continue_pressed)
 	remove_cancel_button.pressed.connect(_on_remove_cancel_pressed)
 	deck_overlay_close_button.pressed.connect(_on_deck_overlay_close_pressed)
+	loot_continue_button.pressed.connect(_on_loot_continue_pressed)
+	loot_pick_abandon_button.pressed.connect(_on_loot_pick_abandon)
 
 func _seed_deck_for_role(role: String) -> Array:
 	# 言灵初始牌库：5张id1，5张id2，3张id3，2张id4（允许重复卡）
@@ -176,6 +194,167 @@ func _on_deck_button_pressed() -> void:
 
 func _on_deck_overlay_close_pressed() -> void:
 	deck_overlay.visible = false
+
+
+## 击败敌人后的战利品弹窗；`await` 至玩家点击「继续」关闭。
+func show_battle_loot_popup() -> void:
+	_loot_gold_claimed = false
+	_loot_card_resolved = false
+	_loot_card_row_button = null
+	loot_continue_button.disabled = true
+	_rebuild_loot_list()
+	loot_card_pick_overlay.visible = false
+	loot_popup.visible = true
+	await battle_loot_popup_closed
+
+
+func _rebuild_loot_list() -> void:
+	for c in loot_list_vbox.get_children():
+		c.queue_free()
+	var gold_btn := Button.new()
+	gold_btn.text = "30金币"
+	gold_btn.pressed.connect(_on_loot_gold_pressed.bind(gold_btn))
+	loot_list_vbox.add_child(gold_btn)
+	var card_btn := Button.new()
+	card_btn.text = "获取一张卡牌"
+	card_btn.pressed.connect(_on_loot_card_row_pressed.bind(card_btn))
+	loot_list_vbox.add_child(card_btn)
+	_loot_card_row_button = card_btn
+
+
+func _refresh_loot_continue_enabled() -> void:
+	loot_continue_button.disabled = not (_loot_gold_claimed and _loot_card_resolved)
+
+
+func _on_loot_gold_pressed(gold_btn: Button) -> void:
+	if _loot_gold_claimed:
+		return
+	var g := int(game_data.get("gold", 0))
+	game_data["gold"] = g + 30
+	_update_top_bar()
+	_loot_gold_claimed = true
+	gold_btn.disabled = true
+	gold_btn.text = "30金币（已领取）"
+	SaveManager.save_game(game_data)
+	_refresh_loot_continue_enabled()
+
+
+func _on_loot_card_row_pressed(_card_btn: Button) -> void:
+	if _loot_card_resolved:
+		return
+	_open_loot_card_pick()
+
+
+func _card_pool_ids_for_role(role: String) -> Array:
+	var ids: Array = []
+	for item in WizardInfoConfig.load_cards():
+		if not item is Dictionary:
+			continue
+		var d: Dictionary = item
+		var cid := int(d.get("card_id", 0))
+		if cid == 0:
+			continue
+		var roles_raw: Variant = d.get("roles", null)
+		if roles_raw is Array:
+			var rs: Array = roles_raw
+			for r in rs:
+				if str(r) == role:
+					ids.append(cid)
+					break
+		elif role == "Wizard":
+			ids.append(cid)
+	if ids.is_empty():
+		for item in WizardInfoConfig.load_cards():
+			if item is Dictionary:
+				var cid2 := int((item as Dictionary).get("card_id", 0))
+				if cid2 != 0:
+					ids.append(cid2)
+	return ids
+
+
+func _pick_three_distinct_card_ids_from_pool() -> Array:
+	var pool := _card_pool_ids_for_role(str(game_data.get("role", "Wizard")))
+	var pool_copy: Array = pool.duplicate()
+	pool_copy.shuffle()
+	var out: Array = []
+	for cid_any in pool_copy:
+		var cid := int(cid_any)
+		if cid == 0:
+			continue
+		if out.has(cid):
+			continue
+		out.append(cid)
+		if out.size() >= 3:
+			break
+	return out
+
+
+func _open_loot_card_pick() -> void:
+	for c in loot_pick_cards_hbox.get_children():
+		c.queue_free()
+	var ids := _pick_three_distinct_card_ids_from_pool()
+	var card_map := _card_map_by_id()
+	if ids.is_empty():
+		loot_pick_hint.text = "暂无可用卡牌，请选择放弃"
+	elif ids.size() < 3:
+		loot_pick_hint.text = "当前牌池仅提供 %d 张，请选择其一或放弃" % ids.size()
+	else:
+		loot_pick_hint.text = "点击卡牌选取，或点击下方放弃"
+	var loot_scale := 0.26
+	for cid in ids:
+		if not card_map.has(cid):
+			continue
+		var btn := Button.new()
+		btn.flat = true
+		var w := _create_card_widget(card_map[cid] as Dictionary, loot_scale)
+		btn.add_child(w)
+		var wsize: Vector2 = w.custom_minimum_size
+		btn.custom_minimum_size = wsize + Vector2(8, 8)
+		btn.pressed.connect(_on_loot_pick_card_chosen.bind(cid))
+		loot_pick_cards_hbox.add_child(btn)
+	loot_card_pick_overlay.visible = true
+
+
+func _on_loot_pick_card_chosen(cid: int) -> void:
+	var deck_raw: Variant = game_data.get("player_deck", [])
+	if typeof(deck_raw) != TYPE_ARRAY:
+		game_data["player_deck"] = []
+	var deck: Array = game_data["player_deck"] as Array
+	deck.append(cid)
+	game_data["player_deck"] = deck
+	_loot_card_resolved = true
+	_close_loot_card_pick()
+	if _loot_card_row_button != null:
+		_loot_card_row_button.disabled = true
+		_loot_card_row_button.text = "获取一张卡牌（已领取）"
+	SaveManager.save_game(game_data)
+	if deck_overlay.visible:
+		_refresh_deck_overlay()
+	_refresh_loot_continue_enabled()
+
+
+func _on_loot_pick_abandon() -> void:
+	if not loot_card_pick_overlay.visible:
+		return
+	_loot_card_resolved = true
+	_close_loot_card_pick()
+	if _loot_card_row_button != null:
+		_loot_card_row_button.disabled = true
+		_loot_card_row_button.text = "获取一张卡牌（已放弃）"
+	_refresh_loot_continue_enabled()
+
+
+func _close_loot_card_pick() -> void:
+	loot_card_pick_overlay.visible = false
+
+
+func _on_loot_continue_pressed() -> void:
+	loot_popup.visible = false
+	loot_card_pick_overlay.visible = false
+	_advance_year_and_respawn()
+	SaveManager.save_game(game_data)
+	battle_loot_popup_closed.emit()
+
 
 func _refresh_deck_overlay() -> void:
 	for c in deck_grid.get_children():
@@ -216,7 +395,7 @@ func _on_save_game_pressed() -> void:
 	settings_popup.visible = false
 
 func _on_exit_pressed() -> void:
-	get_tree().change_scene_to_file("res://mainPage.tscn")
+	get_tree().change_scene_to_file(MAIN_PAGE_SCENE)
 
 func _clamp_spot_position(pos: Vector2) -> Vector2:
 	var margin := INTERACTION_SPAWN_EDGE_MARGIN
@@ -896,3 +1075,61 @@ func _card_stat_int_str(card: Dictionary, key: String) -> String:
 	if typeof(v) == TYPE_FLOAT:
 		return str(int(round(v)))
 	return str(int(round(float(v))))
+
+
+## 通用玩家死亡/失败演出：全屏自上而下被黑色填满（约 2s）→ 居中大字 + 唯一按钮跳转主菜单。其它系统也可 `await game_main.play_player_death_sequence()`。
+func play_player_death_sequence(main_text: String = "死", button_text: String = "结束") -> void:
+	if _player_death_sequence_active:
+		return
+	_player_death_sequence_active = true
+
+	var layer := CanvasLayer.new()
+	layer.layer = 300
+	add_child(layer)
+
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(root)
+
+	var vp := get_viewport().get_visible_rect().size
+	if vp.y < 2.0:
+		vp = Vector2(1152.0, 648.0)
+
+	var black := ColorRect.new()
+	black.color = Color.BLACK
+	black.position = Vector2.ZERO
+	black.size = Vector2(vp.x, 0.0)
+	root.add_child(black)
+
+	var tw := create_tween()
+	tw.set_trans(Tween.TRANS_LINEAR)
+	tw.tween_property(black, "size", Vector2(vp.x, vp.y), 2.0)
+	await tw.finished
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(center)
+
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 32)
+	center.add_child(vb)
+
+	var title := Label.new()
+	title.text = main_text
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", int(vp.y * 0.25))
+	title.add_theme_color_override("font_color", Color.WHITE)
+	vb.add_child(title)
+
+	var end_btn := Button.new()
+	end_btn.text = button_text
+	end_btn.custom_minimum_size = Vector2(220.0, 52.0)
+	vb.add_child(end_btn)
+	end_btn.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file(MAIN_PAGE_SCENE)
+	)
+	await get_tree().process_frame
+	end_btn.grab_focus()

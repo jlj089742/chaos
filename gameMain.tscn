@@ -434,3 +434,110 @@ size_flags_horizontal = 3
 theme_override_constants/h_separation = 22
 theme_override_constants/v_separation = 24
 columns = 5
+
+[node name="LootPopup" type="PanelContainer" parent="UI" unique_id=183300]
+visible = false
+z_index = 24
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -220.0
+offset_right = 280.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LootMargin" type="MarginContainer" parent="UI/LootPopup" unique_id=183301]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="LootVBox" type="VBoxContainer" parent="UI/LootPopup/LootMargin" unique_id=183302]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="LootTitle" type="Label" parent="UI/LootPopup/LootMargin/LootVBox" unique_id=183303]
+layout_mode = 2
+text = "战利品"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="LootListVBox" type="VBoxContainer" parent="UI/LootPopup/LootMargin/LootVBox" unique_id=183304]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LootContinueButton" type="Button" parent="UI/LootPopup/LootMargin/LootVBox" unique_id=183305]
+layout_mode = 2
+disabled = true
+text = "继续"
+
+[node name="LootCardPickOverlay" type="Control" parent="UI" unique_id=183400]
+visible = false
+z_index = 28
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="LootPickShade" type="ColorRect" parent="UI/LootCardPickOverlay" unique_id=183401]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="LootPickCenter" type="CenterContainer" parent="UI/LootCardPickOverlay" unique_id=183402]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LootPickPanel" type="PanelContainer" parent="UI/LootCardPickOverlay/LootPickCenter" unique_id=183403]
+layout_mode = 2
+
+[node name="LootPickMargin" type="MarginContainer" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel" unique_id=183404]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="LootPickVBox" type="VBoxContainer" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin" unique_id=183405]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="LootPickTitle" type="Label" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox" unique_id=183406]
+layout_mode = 2
+text = "选择一张卡牌加入牌库"
+horizontal_alignment = 1
+
+[node name="LootPickHint" type="Label" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox" unique_id=183407]
+layout_mode = 2
+text = "点击卡牌选取，或点击下方放弃"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.75, 0.78, 0.88, 1)
+
+[node name="LootPickCardsHBox" type="HBoxContainer" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox" unique_id=183408]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="LootPickBottom" type="HBoxContainer" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox" unique_id=183409]
+layout_mode = 2
+alignment = 1
+
+[node name="LootPickAbandonButton" type="Button" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox/LootPickBottom" unique_id=183410]
+layout_mode = 2
+text = "放弃"
