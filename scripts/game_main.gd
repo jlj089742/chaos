@@ -1,6 +1,7 @@
 extends Node2D
 
 const INTERACTION_SPOT_SCENE := preload("res://interaction_spot.tscn")
+const BATTLE_OVERLAY_SCENE := preload("res://battle_overlay.tscn")
 const INTERACTION_SPAWN_EDGE_MARGIN := 150.0
 const START_TEX_PATH := "res://resource/startbase.png"
 const BOX_TEX_PATH := "res://resource/box.png"
@@ -69,6 +70,7 @@ var _start_popup_rest_tex: Texture2D = preload(REST_TEX_PATH)
 var _start_popup_event_fallback_tex: Texture2D = preload(EVENT_FALLBACK_TEX_PATH)
 var _card_base_tex: Texture2D = preload(CARD_BASE_PATH)
 var _shop_sold_indices: Dictionary = {}
+var _battle_overlay: Node = null
 
 func _ready() -> void:
 	game_data = SaveManager.load_save()
@@ -81,6 +83,7 @@ func _ready() -> void:
 	_update_top_bar()
 	_setup_map_bounds()
 	_restore_or_spawn_interaction_spots()
+	_setup_modal_deck_layer()
 	_bind_ui_events()
 	settings_popup.visible = false
 	interaction_popup.visible = false
@@ -88,6 +91,27 @@ func _ready() -> void:
 	shop_popup.visible = false
 	remove_overlay.visible = false
 	deck_overlay.visible = false
+	_battle_overlay = BATTLE_OVERLAY_SCENE.instantiate()
+	$UI.add_child(_battle_overlay)
+	if _battle_overlay.has_method("setup"):
+		_battle_overlay.setup(self)
+
+func refresh_top_bar() -> void:
+	_update_top_bar()
+
+
+func create_card_for_ui(card: Dictionary, scale: float = CARD_SCALE) -> Control:
+	return _create_card_widget(card, scale)
+
+func _setup_modal_deck_layer() -> void:
+	# 牌库仅查看：放到更高 CanvasLayer，避免与战斗层（同层动态节点）抢点击导致无法关闭
+	var modal_layer := CanvasLayer.new()
+	modal_layer.layer = 100
+	modal_layer.name = "ModalUILayer"
+	add_child(modal_layer)
+	$UI.remove_child(deck_overlay)
+	modal_layer.add_child(deck_overlay)
+
 
 func _setup_map_bounds() -> void:
 	var viewport_size := get_viewport_rect().size
@@ -308,6 +332,10 @@ func _on_interaction_spot_clicked(spot_type: String) -> void:
 		return
 	if spot_type == "event":
 		_show_event_interaction_popup()
+		return
+	if spot_type == "battle":
+		if _battle_overlay != null and _battle_overlay.has_method("start_battle"):
+			_battle_overlay.start_battle()
 		return
 	interaction_popup.visible = false
 	start_interaction_popup.visible = false

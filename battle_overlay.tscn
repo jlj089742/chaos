@@ -1,0 +1,188 @@
+[gd_scene format=3 uid="uid://cbgb3enopisv1"]
+
+[ext_resource type="Script" path="res://scripts/battle_overlay.gd" id="1_battle"]
+
+[node name="BattleOverlay" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 52.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+z_index = 4
+script = ExtResource("1_battle")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.06, 0.07, 0.1, 0.97)
+
+[node name="MonsterRow" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 16.0
+offset_right = 280.0
+offset_bottom = 120.0
+grow_horizontal = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="EnemyTexture" type="TextureRect" parent="MonsterRow"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyInfo" type="VBoxContainer" parent="MonsterRow"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EnemyNameLabel" type="Label" parent="MonsterRow/EnemyInfo"]
+layout_mode = 2
+text = "敌人"
+theme_override_font_sizes/font_size = 22
+
+[node name="EnemyHealthLabel" type="Label" parent="MonsterRow/EnemyInfo"]
+layout_mode = 2
+text = "生命: 0"
+
+[node name="PlayZone" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -380.0
+offset_top = -220.0
+offset_right = 380.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayZoneHint" type="Label" parent="PlayZone"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -18.0
+offset_right = 160.0
+offset_bottom = 18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 0.75)
+text = "将卡牌拖入此区域后点击以使用"
+horizontal_alignment = 1
+
+[node name="PlayerRow" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -168.0
+offset_right = 520.0
+offset_bottom = -28.0
+grow_horizontal = 0
+grow_vertical = 0
+alignment = 0
+theme_override_constants/separation = 12
+
+[node name="PlayerTexture" type="TextureRect" parent="PlayerRow"]
+custom_minimum_size = Vector2(88, 88)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayerInfo" type="VBoxContainer" parent="PlayerRow"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="PlayerHealthLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+layout_mode = 2
+text = "生命 50/50"
+theme_override_font_sizes/font_size = 18
+
+[node name="PlayerShieldLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+layout_mode = 2
+text = "护盾 0"
+theme_override_font_sizes/font_size = 18
+
+[node name="PlayerManaLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+layout_mode = 2
+text = "法力 24/24"
+theme_override_font_sizes/font_size = 18
+
+[node name="PlayerActionLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+layout_mode = 2
+text = "行动力 3"
+theme_override_font_sizes/font_size = 18
+
+[node name="HandContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -620.0
+offset_top = -312.0
+offset_right = 620.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="DrawAnimLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+z_index = 8
+
+[node name="EndTurnButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -168.0
+offset_top = -312.0
+offset_right = -24.0
+offset_bottom = -268.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "结束回合"
+
+[node name="DragLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+z_index = 12

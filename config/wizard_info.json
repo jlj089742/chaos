@@ -38,9 +38,9 @@
 			"card_name": "调息",
 			"desc":"恢复12法力",
 			"mp_cost": 0,
-			"action_cost": 3,
+			"action_cost": 1,
 			"effect": {
-				"mp": 12
+				"mp": 20
 			},
 			"target": 0
 		},

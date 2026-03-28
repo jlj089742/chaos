@@ -1,0 +1,101 @@
+{
+	"1": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 45,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"2": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 50,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"3": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 55,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"4": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 60,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"5": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 70,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"6": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 80,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"7": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 90,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"8": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 100,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	],
+	"9": [
+		{
+			"battle_target_name":"野鬼",
+			"health": 120,
+			"img": "res://resource/battle/battle01.png",
+			"card_id_list":[
+				"1","2","3"
+			]
+
+		}
+	]
+}
