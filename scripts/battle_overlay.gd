@@ -3,6 +3,7 @@ extends Control
 ## 战斗 UI 与回合流程。卡牌真正生效的逻辑入口为 `_apply_battle_card_effect`。
 
 const HAND_CARD_SCALE := 0.22
+const HAND_MAX := 8
 const FALLBACK_ENEMY_TEX := "res://resource/battle/battle01.png"
 const _DRAW_ENTER_SEC := 0.26
 const _DRAW_SHOWCASE_HOLD_SEC := 0.18
@@ -17,7 +18,9 @@ const _DRAW_OFFSCREEN_PAD := 64.0
 @onready var _enemy_tex: TextureRect = $MonsterRow/EnemyTexture
 @onready var _enemy_name: Label = $MonsterRow/EnemyInfo/EnemyNameLabel
 @onready var _enemy_hp: Label = $MonsterRow/EnemyInfo/EnemyHealthLabel
-@onready var _player_tex: TextureRect = $PlayerRow/PlayerTexture
+@onready var _player_tex: TextureRect = $PlayerRow/PlayerAvatarColumn/PlayerTexture
+@onready var _player_tip_bubble: PanelContainer = $PlayerRow/PlayerAvatarColumn/PlayerTipBubble
+@onready var _player_tip_label: Label = $PlayerRow/PlayerAvatarColumn/PlayerTipBubble/PlayerTipLabel
 @onready var _player_hp: Label = $PlayerRow/PlayerInfo/PlayerHealthLabel
 @onready var _player_shield: Label = $PlayerRow/PlayerInfo/PlayerShieldLabel
 @onready var _player_mana: Label = $PlayerRow/PlayerInfo/PlayerManaLabel
@@ -47,6 +50,7 @@ var _drag_hand_index: int = 0
 var _next_spell_damage_double: bool = false
 var _pending_turn_finish_damage: Array = []
 var _play_resolve_in_progress: bool = false
+var _tip_tween: Tween = null
 
 func setup(main: Node) -> void:
 	_game_main = main
@@ -54,7 +58,37 @@ func setup(main: Node) -> void:
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
+	_setup_player_tip_bubble_style()
 	set_process(false)
+
+
+func _setup_player_tip_bubble_style() -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.15, 0.16, 0.22, 0.92)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 10
+	sb.content_margin_right = 10
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	_player_tip_bubble.add_theme_stylebox_override("panel", sb)
+
+
+func _show_player_tip(text: String) -> void:
+	if _player_tip_label == null or _player_tip_bubble == null:
+		return
+	if _tip_tween != null and _tip_tween.is_valid():
+		_tip_tween.kill()
+	_player_tip_label.text = text
+	_player_tip_bubble.visible = true
+	_player_tip_bubble.modulate = Color(1, 1, 1, 1)
+	_tip_tween = create_tween()
+	_tip_tween.tween_interval(1.35)
+	_tip_tween.tween_property(_player_tip_bubble, "modulate:a", 0.0, 0.32)
+	_tip_tween.tween_callback(func() -> void:
+		_player_tip_bubble.visible = false
+		_player_tip_bubble.modulate = Color(1, 1, 1, 1)
+		_tip_tween = null
+	)
 
 
 func _input(event: InputEvent) -> void:
@@ -110,6 +144,12 @@ func start_battle() -> void:
 
 func end_battle() -> void:
 	print("end_battle!")
+	if _tip_tween != null and _tip_tween.is_valid():
+		_tip_tween.kill()
+	_tip_tween = null
+	if _player_tip_bubble != null:
+		_player_tip_bubble.visible = false
+		_player_tip_bubble.modulate = Color(1, 1, 1, 1)
 	visible = false
 	_battle_shield = 0
 	_cancel_drag()
@@ -185,8 +225,10 @@ func _refresh_player_labels() -> void:
 
 func _draw_cards(n: int) -> void:
 	for _i in n:
+		if _hand_entries.size() >= HAND_MAX:
+			break
 		if _draw_pile.is_empty():
-			print("牌库空了，无法抽卡")
+			_show_player_tip("没有牌了")
 			break
 		var cid := int(_draw_pile.pop_back())
 		await _animate_draw_card_to_hand(cid)
@@ -306,12 +348,12 @@ func _try_play_selected_card() -> void:
 	var act_need := int(round(float(card.get("action_cost", 0))))
 	var mp := int(_game_data.get("mana", 0))
 	var act := int(_game_data.get("action", 0))
-	if mp < mp_need :
-		print("try_play_selected_card mp不足")
+	if mp < mp_need:
+		_show_player_tip("法力不足")
 		_cancel_drag()
 		return
-	if act < act_need :
-		print("try_play_selected_card act不足")
+	if act < act_need:
+		_show_player_tip("行动力不足")
 		_cancel_drag()
 		return
 
