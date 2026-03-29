@@ -11,6 +11,20 @@ const _DRAW_TO_HAND_SEC := 0.3
 const _DRAW_OFFSCREEN_PAD := 64.0
 const _STAT_TWEEN_SEC := 0.5
 
+## 统一伤害结算：伤害来源（谁造成本次结算的基础伤害）
+const DAMAGE_SOURCE_CARD := "card"
+const DAMAGE_SOURCE_PLAYER_BUFF := "player_buff"
+const DAMAGE_SOURCE_ENEMY_ATTACK := "enemy_attack"
+const DAMAGE_SOURCE_ENEMY_BUFF := "enemy_buff"
+
+## 统一伤害结算：伤害目标
+const DAMAGE_TARGET_PLAYER := "player"
+const DAMAGE_TARGET_ENEMY := "enemy"
+
+## 玩家身上「下一次造成伤害翻倍」的可叠加 buff；结算 outgoing 伤害时每层翻倍一次并消耗一层。
+## 规范：① `buff_type` 为 legacy `"damage_double"`；② `buff_type` 为 `"damage"` 且 `double_damage` > 0（如通明）。
+const BUFF_TYPE_DAMAGE_DOUBLE := "damage_double"
+
 ## 战斗页右上角「？」气泡的提示全文。多行请直接在本字符串里换行。
 const BATTLE_HELP_HINT_TEXT := "战斗说明：\n卡牌左上角为法力值消耗，右上角为行动力消耗。\n卡牌选中后放置在中间区域，即可生效\n初始手牌3张，每回合默认抽2张牌\n法力值每场战斗开始时恢复满\n行动力每回合开始时恢复满"
 
@@ -56,7 +70,6 @@ var _dragging_cid: int = 0
 var _drag_pickup_offset: Vector2 = Vector2.ZERO
 var _drag_hand_index: int = 0
 
-var _next_spell_damage_double: bool = false
 ## 战斗内 buff，不入存档；双方各一列表
 var _player_buffs: Array = []
 var _enemy_buffs: Array = []
@@ -187,7 +200,6 @@ func start_battle() -> void:
 	_draw_pile = deck
 	_discard.clear()
 	_hand_entries.clear()
-	_next_spell_damage_double = false
 	_player_buffs.clear()
 	_enemy_buffs.clear()
 	_player_turn = true
@@ -597,16 +609,19 @@ func _trigger_buff_effect(buff: Dictionary, owner_is_player: bool) -> void:
 	var snap := _battle_stat_snapshot_before_pay()
 	match bt:
 		"turn_finish":
-			var dmg := int(round(float(buff.get("damage", 0))))
-			if dmg <= 0:
+			var base := int(round(float(buff.get("damage", 0))))
+			if base <= 0:
 				return
-			if owner_is_player:
-				_monster_hp = maxi(0, _monster_hp - dmg)
-			else:
-				_apply_damage_to_player(dmg)
+			## 每层单独结算一次基础伤害，便于未来「每次造成伤害」类连锁；勿合并为 base * buff_count。
+			var n := maxi(1, int(buff.get("buff_count", 1)))
+			for _i in n:
+				if owner_is_player:
+					_apply_battle_damage(base, DAMAGE_SOURCE_PLAYER_BUFF, DAMAGE_TARGET_ENEMY)
+				else:
+					_apply_battle_damage(base, DAMAGE_SOURCE_ENEMY_BUFF, DAMAGE_TARGET_PLAYER)
 		_:
 			pass
-	await  _tween_battle_stat_labels_if_changed(snap,_STAT_TWEEN_SEC)
+	await _tween_battle_stat_labels_if_changed(snap, _STAT_TWEEN_SEC)
 
 
 func _refresh_buff_ui() -> void:
@@ -629,9 +644,12 @@ func _refresh_buff_row(row: HBoxContainer, buffs: Array) -> void:
 		dot.add_theme_stylebox_override("panel", sb)
 		var name_part := str(bd.get("buff_name", ""))
 		var desc_part := str(bd.get("buff_desc", ""))
+		var cnt := int(bd.get("buff_count", 1))
 		var tip := name_part
+		if cnt > 1:
+			tip = "%s x%d" % [name_part, cnt] if not name_part.is_empty() else "x%d" % cnt
 		if not desc_part.is_empty():
-			tip = name_part if name_part.is_empty() else name_part + "\n"
+			tip = tip if tip.is_empty() else tip + "\n"
 			tip += desc_part
 		dot.tooltip_text = tip
 		dot.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -640,11 +658,20 @@ func _refresh_buff_row(row: HBoxContainer, buffs: Array) -> void:
 
 func _append_buff_for_card_target(card: Dictionary, buff: Dictionary) -> void:
 	var tgt := int(card.get("target", 0))
-	var b: Dictionary = buff.duplicate(true)
 	if tgt == 1:
-		_enemy_buffs.append(b)
+		_add_or_stack_buff(_enemy_buffs, buff)
 	else:
-		_player_buffs.append(b)
+		_add_or_stack_buff(_player_buffs, buff)
+	_refresh_buff_ui()
+
+
+func _stack_damage_double_buff_on_player() -> void:
+	_add_or_stack_buff(_player_buffs, {
+		"buff_type": "damage",
+		"buff_name": "伤害翻倍",
+		"buff_desc": "下一次造成的伤害翻倍（可叠加，每次造成伤害消耗一层）",
+		"double_damage": 1,
+	})
 	_refresh_buff_ui()
 
 
@@ -652,11 +679,87 @@ func _monster_turn() -> void:
 	print("monster_turn!dmg=8")
 	if _monster_hp <= 0:
 		return
-	_apply_damage_to_player(8)
+	_apply_battle_damage(8, DAMAGE_SOURCE_ENEMY_ATTACK, DAMAGE_TARGET_PLAYER)
 	_trigger_buffs_at_enemy_turn_end()
 
 
-## 玩家受到伤害：先扣战斗护盾，溢出再扣血量（护盾不入存档）。
+func _buff_merge_key(buff: Dictionary) -> String:
+	return "%s|%s" % [str(buff.get("buff_type", "")), str(buff.get("buff_name", ""))]
+
+
+## 相同 buff_type + buff_name 视为同一种 buff，重复施加仅叠 buff_count。
+func _add_or_stack_buff(buffs: Array, buff: Dictionary) -> void:
+	var incoming: Dictionary = buff.duplicate(true)
+	var key := _buff_merge_key(incoming)
+	var idx := -1
+	for i in buffs.size():
+		if buffs[i] is Dictionary and _buff_merge_key(buffs[i] as Dictionary) == key:
+			idx = i
+			break
+	if idx < 0:
+		var ic := int(round(float(incoming.get("buff_count", 1))))
+		incoming["buff_count"] = maxi(1, ic)
+		buffs.append(incoming)
+	else:
+		var b: Dictionary = buffs[idx]
+		b["buff_count"] = int(b.get("buff_count", 1)) + 1
+
+
+## 战斗内所有扣血入口：基础伤害 + 来源 + 目标；敌方受伤害时按需消耗玩家「伤害翻倍」层数。
+func _apply_battle_damage(base_damage: int, damage_source: String, damage_target: String) -> void:
+	var amt: int = maxi(0, base_damage)
+	if amt <= 0:
+		return
+	var player_is_dealer: bool = (
+		damage_source == DAMAGE_SOURCE_CARD
+		or damage_source == DAMAGE_SOURCE_PLAYER_BUFF
+	)
+	if damage_target == DAMAGE_TARGET_ENEMY:
+		if player_is_dealer:
+			amt = _consume_one_damage_double_stack_and_multiply(amt)
+		_monster_hp = maxi(0, _monster_hp - amt)
+	elif damage_target == DAMAGE_TARGET_PLAYER:
+		_apply_damage_to_player(amt)
+
+
+func _buff_is_damage_double_stack(buff: Dictionary) -> bool:
+	var bt := str(buff.get("buff_type", ""))
+	if bt == BUFF_TYPE_DAMAGE_DOUBLE:
+		return true
+	if bt == "damage" and int(round(float(buff.get("double_damage", 0)))) > 0:
+		return true
+	return false
+
+
+func _find_buff_index_damage_double_stack(buffs: Array) -> int:
+	for i in buffs.size():
+		if buffs[i] is Dictionary and _buff_is_damage_double_stack(buffs[i] as Dictionary):
+			return i
+	return -1
+
+
+## 每层「伤害翻倍」使本次伤害乘以 2 一次，并令该 buff 的 buff_count 减一；减至 0 则移除。
+func _consume_one_damage_double_stack_and_multiply(amount: int) -> int:
+	var out := amount
+	var idx := _find_buff_index_damage_double_stack(_player_buffs)
+	if idx < 0:
+		return out
+	var b: Dictionary = _player_buffs[idx]
+	var stacks := int(b.get("buff_count", 1))
+	if stacks <= 0:
+		_player_buffs.remove_at(idx)
+		return out
+	out *= 2
+	stacks -= 1
+	if stacks <= 0:
+		_player_buffs.remove_at(idx)
+	else:
+		b["buff_count"] = stacks
+	_refresh_buff_ui()
+	return out
+
+
+## 玩家受到伤害：先扣战斗护盾，溢出再扣血量（护盾不入存档）。仅由 _apply_battle_damage 在目标为玩家时调用。
 func _apply_damage_to_player(amount: int) -> void:
 	var dmg: int = maxi(0, amount)
 	if dmg <= 0:
@@ -692,10 +795,7 @@ func _apply_battle_card_effect(card: Dictionary) -> void:
 		match key:
 			"damage":
 				var amt := int(round(float(v)))
-				if _next_spell_damage_double:
-					amt *= 2
-					_next_spell_damage_double = false
-				_monster_hp = maxi(0, _monster_hp - amt)
+				_apply_battle_damage(amt, DAMAGE_SOURCE_CARD, DAMAGE_TARGET_ENEMY)
 			"mp":
 				var add := int(round(float(v)))
 				var cur := int(_game_data.get("mana", 0))
@@ -705,7 +805,7 @@ func _apply_battle_card_effect(card: Dictionary) -> void:
 				var add_sh := int(round(float(v)))
 				_battle_shield = maxi(0, _battle_shield + add_sh)
 			"double_damage":
-				_next_spell_damage_double = true
+				_stack_damage_double_buff_on_player()
 			"draw", "deaw":
 				var n := int(round(float(v)))
 				await _draw_cards(n)

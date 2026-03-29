@@ -47,11 +47,16 @@
 		{
 			"card_id": 5,
 			"card_name": "通明",
-			"desc":"下一次法术伤害翻倍",
+			"desc":"下一次造成的法术伤害翻倍",
 			"mp_cost": 4,
 			"action_cost": 1,
 			"effect": {
-				"double_damage": 1
+				"buff": {
+					"buff_name":"通明",
+					"buff_desc":"下一次造成的法术伤害翻倍",
+					"buff_type":"damage",
+					"double_damage":1
+				}
 			},
 			"target": 0
 		},
