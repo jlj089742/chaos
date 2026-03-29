@@ -9,7 +9,10 @@ const _DRAW_ENTER_SEC := 0.26
 const _DRAW_SHOWCASE_HOLD_SEC := 0.18
 const _DRAW_TO_HAND_SEC := 0.3
 const _DRAW_OFFSCREEN_PAD := 64.0
-const _STAT_TWEEN_SEC := 1.0
+const _STAT_TWEEN_SEC := 0.5
+
+## 战斗页右上角「？」气泡的提示全文。多行请直接在本字符串里换行。
+const BATTLE_HELP_HINT_TEXT := "战斗说明：\n卡牌左上角为法力值消耗，右上角为行动力消耗。\n卡牌选中后放置在中间区域，即可生效\n初始手牌3张，每回合默认抽2张牌\n法力值每场战斗开始时恢复满\n行动力每回合开始时恢复满"
 
 @onready var _play_zone: Control = $PlayZone
 @onready var _hand: HBoxContainer = $HandContainer
@@ -28,6 +31,9 @@ const _STAT_TWEEN_SEC := 1.0
 @onready var _player_shield: Label = $PlayerRow/PlayerInfo/PlayerShieldLabel
 @onready var _player_mana: Label = $PlayerRow/PlayerInfo/PlayerManaLabel
 @onready var _player_act: Label = $PlayerRow/PlayerInfo/PlayerActionLabel
+@onready var _help_hint_button: Button = $BattleHelpRoot/HelpHintButton
+@onready var _help_hint_bubble: PanelContainer = $BattleHelpRoot/HelpHintBubble
+@onready var _help_hint_label: Label = $BattleHelpRoot/HelpHintBubble/HelpHintLabel
 
 var _game_main: Node = null
 var _game_data: Dictionary = {}
@@ -64,7 +70,9 @@ func setup(main: Node) -> void:
 
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
+	_help_hint_button.pressed.connect(_on_help_hint_button_pressed)
 	_setup_player_tip_bubble_style()
+	_setup_help_hint_ui()
 	set_process(false)
 
 
@@ -77,6 +85,49 @@ func _setup_player_tip_bubble_style() -> void:
 	sb.content_margin_top = 6
 	sb.content_margin_bottom = 6
 	_player_tip_bubble.add_theme_stylebox_override("panel", sb)
+
+
+func _setup_help_hint_ui() -> void:
+	var bubble_sb := StyleBoxFlat.new()
+	bubble_sb.bg_color = Color(0.12, 0.13, 0.2, 0.96)
+	bubble_sb.set_corner_radius_all(10)
+	bubble_sb.content_margin_left = 12
+	bubble_sb.content_margin_right = 12
+	bubble_sb.content_margin_top = 10
+	bubble_sb.content_margin_bottom = 10
+	bubble_sb.set_border_width_all(1)
+	bubble_sb.border_color = Color(0.35, 0.38, 0.48, 0.9)
+	_help_hint_bubble.add_theme_stylebox_override("panel", bubble_sb)
+	_help_hint_label.text = BATTLE_HELP_HINT_TEXT
+	var r := 20.0
+	var btn_normal := StyleBoxFlat.new()
+	btn_normal.bg_color = Color(0.22, 0.24, 0.32, 0.92)
+	btn_normal.set_corner_radius_all(int(r))
+	btn_normal.set_border_width_all(1)
+	btn_normal.border_color = Color(0.45, 0.48, 0.58, 0.85)
+	var btn_hover := btn_normal.duplicate() as StyleBoxFlat
+	btn_hover.bg_color = Color(0.28, 0.3, 0.4, 0.95)
+	var btn_pressed := btn_normal.duplicate() as StyleBoxFlat
+	btn_pressed.bg_color = Color(0.18, 0.2, 0.28, 0.98)
+	_help_hint_button.add_theme_stylebox_override("normal", btn_normal)
+	_help_hint_button.add_theme_stylebox_override("hover", btn_hover)
+	_help_hint_button.add_theme_stylebox_override("pressed", btn_pressed)
+	_help_hint_button.add_theme_color_override("font_color", Color(0.92, 0.93, 0.96))
+	_help_hint_button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	_help_hint_button.add_theme_color_override("font_pressed_color", Color(0.85, 0.86, 0.9))
+
+
+func _on_help_hint_button_pressed() -> void:
+	if _help_hint_bubble.visible:
+		_help_hint_bubble.visible = false
+	else:
+		_help_hint_label.text = BATTLE_HELP_HINT_TEXT
+		_help_hint_bubble.visible = true
+
+
+func _hide_help_hint_bubble() -> void:
+	if _help_hint_bubble != null:
+		_help_hint_bubble.visible = false
 
 
 func _show_player_tip(text: String) -> void:
@@ -120,6 +171,11 @@ func start_battle() -> void:
 		return
 	visible = true
 	_game_data = _game_main.game_data
+	# 进入战斗：生命沿用顶栏/存档当前值；法力与行动力回满（行动力每回合开始在 _begin_player_turn 再次回满）。
+	_game_data["mana"] = int(_game_data.get("max_mana", 0))
+	_game_data["action"] = int(_game_data.get("max_action", 0))
+	if _game_main.has_method("_clamp_primary_resources"):
+		_game_main._clamp_primary_resources()
 	_build_card_map()
 	_pick_monster()
 	_monster_hp = int(_monster_entry.get("health", 1))
@@ -135,6 +191,7 @@ func start_battle() -> void:
 	_player_buffs.clear()
 	_enemy_buffs.clear()
 	_player_turn = true
+	_hide_help_hint_bubble()
 
 	for c in _hand.get_children():
 		_hand.remove_child(c)
@@ -167,6 +224,7 @@ func end_battle() -> void:
 	if _player_tip_bubble != null:
 		_player_tip_bubble.visible = false
 		_player_tip_bubble.modulate = Color(1, 1, 1, 1)
+	_hide_help_hint_bubble()
 	visible = false
 	_battle_shield = 0
 	_cancel_drag()
@@ -236,6 +294,7 @@ func _refresh_player_labels() -> void:
 	var act := int(_game_data.get("action", 0))
 	_player_hp.text = "生命 %d/%d" % [hp, mh]
 	_player_shield.text = "护盾 %d" % _battle_shield
+	##战斗开始时，法力恢复满
 	_player_mana.text = "法力 %d/%d" % [mp, mm]
 	_player_act.text = "行动力 %d" % act
 
@@ -484,6 +543,7 @@ func _on_end_turn_pressed() -> void:
 		return
 	if _dragging_button != null:
 		_cancel_drag()
+	##回合结束buff触发方法
 	_trigger_buffs_at_player_turn_end()
 	_player_turn = false
 
@@ -514,6 +574,9 @@ func _on_end_turn_pressed() -> void:
 func _trigger_buffs_at_player_turn_end() -> void:
 	for b in _player_buffs:
 		if b is Dictionary and str((b as Dictionary).get("buff_type", "")) == "turn_finish":
+			##处理文案展示
+			var buff_show_name="触发："+(b as Dictionary).get("buff_name");
+			_show_player_tip(buff_show_name)
 			_trigger_buff_effect(b as Dictionary, true)
 	_refresh_buff_ui()
 
@@ -522,6 +585,8 @@ func _trigger_buffs_at_player_turn_end() -> void:
 func _trigger_buffs_at_enemy_turn_end() -> void:
 	for b in _enemy_buffs:
 		if b is Dictionary and str((b as Dictionary).get("buff_type", "")) == "turn_finish":
+			
+			##实际处理部分
 			_trigger_buff_effect(b as Dictionary, false)
 	_refresh_buff_ui()
 
@@ -529,6 +594,7 @@ func _trigger_buffs_at_enemy_turn_end() -> void:
 ## 根据 buff 的 buff_type 执行效果；owner_is_player 表示该 buff 挂在玩家(true)或敌人(false)身上。
 func _trigger_buff_effect(buff: Dictionary, owner_is_player: bool) -> void:
 	var bt := str(buff.get("buff_type", ""))
+	var snap := _battle_stat_snapshot_before_pay()
 	match bt:
 		"turn_finish":
 			var dmg := int(round(float(buff.get("damage", 0))))
@@ -540,6 +606,7 @@ func _trigger_buff_effect(buff: Dictionary, owner_is_player: bool) -> void:
 				_apply_damage_to_player(dmg)
 		_:
 			pass
+	await  _tween_battle_stat_labels_if_changed(snap,_STAT_TWEEN_SEC)
 
 
 func _refresh_buff_ui() -> void:
@@ -642,14 +709,6 @@ func _apply_battle_card_effect(card: Dictionary) -> void:
 			"draw", "deaw":
 				var n := int(round(float(v)))
 				await _draw_cards(n)
-			"turn_finish_damage":
-				var amt_tf := int(round(float(v)))
-				_append_buff_for_card_target(card, {
-					"buff_name": "回合结束伤害",
-					"buff_desc": "回合结束时造成%d点伤害" % amt_tf,
-					"buff_type": "turn_finish",
-					"damage": amt_tf,
-				})
 			"buff":
 				if v is Dictionary:
 					_append_buff_for_card_target(card, v as Dictionary)
