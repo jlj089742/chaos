@@ -25,6 +25,24 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.06, 0.07, 0.1, 0.97)
 
+[node name="TurnPhasePanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 20.0
+offset_top = -36.0
+offset_right = 168.0
+offset_bottom = 36.0
+grow_vertical = 2
+
+[node name="TurnPhaseLabel" type="Label" parent="TurnPhasePanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "玩家回合"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="MonsterRow" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 5
@@ -66,6 +84,10 @@ theme_override_font_sizes/font_size = 22
 [node name="EnemyHealthLabel" type="Label" parent="MonsterRow/EnemyInfo"]
 layout_mode = 2
 text = "生命: 0"
+
+[node name="EnemyShieldLabel" type="Label" parent="MonsterRow/EnemyInfo"]
+layout_mode = 2
+text = "护盾 0"
 
 [node name="PlayZone" type="Panel" parent="."]
 layout_mode = 1

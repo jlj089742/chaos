@@ -10,9 +10,12 @@ const _DRAW_SHOWCASE_HOLD_SEC := 0.18
 const _DRAW_TO_HAND_SEC := 0.3
 const _DRAW_OFFSCREEN_PAD := 64.0
 const _STAT_TWEEN_SEC := 0.5
+const _MONSTER_CARD_SHOWCASE_HOLD_SEC := 0.45
+const _MONSTER_CARDS_PER_TURN := 2
 
 ## 统一伤害结算：伤害来源（谁造成本次结算的基础伤害）
 const DAMAGE_SOURCE_CARD := "card"
+const DAMAGE_SOURCE_MONSTER_CARD := "monster_card"
 const DAMAGE_SOURCE_PLAYER_BUFF := "player_buff"
 const DAMAGE_SOURCE_ENEMY_ATTACK := "enemy_attack"
 const DAMAGE_SOURCE_ENEMY_BUFF := "enemy_buff"
@@ -37,6 +40,8 @@ const BATTLE_HELP_HINT_TEXT := "战斗说明：\n卡牌左上角为法力值消�
 @onready var _enemy_buff_row: HBoxContainer = $MonsterRow/EnemyAvatarColumn/EnemyBuffRow
 @onready var _enemy_name: Label = $MonsterRow/EnemyInfo/EnemyNameLabel
 @onready var _enemy_hp: Label = $MonsterRow/EnemyInfo/EnemyHealthLabel
+@onready var _enemy_shield: Label = $MonsterRow/EnemyInfo/EnemyShieldLabel
+@onready var _turn_phase_label: Label = $TurnPhasePanel/TurnPhaseLabel
 @onready var _player_tex: TextureRect = $PlayerRow/PlayerAvatarColumn/PlayerTexture
 @onready var _player_buff_row: HBoxContainer = $PlayerRow/PlayerAvatarColumn/PlayerBuffRow
 @onready var _player_tip_bubble: PanelContainer = $PlayerRow/PlayerAvatarColumn/PlayerTipBubble
@@ -60,6 +65,8 @@ var _hand_entries: Array = []
 
 var _monster_entry: Dictionary = {}
 var _monster_hp: int = 0
+## 怪物战斗内护盾，不入存档；开局 0
+var _enemy_battle_shield: int = 0
 ## 战斗内护盾，不入存档；开局 0，仅本场有效
 var _battle_shield: int = 0
 
@@ -86,6 +93,7 @@ func _ready() -> void:
 	_help_hint_button.pressed.connect(_on_help_hint_button_pressed)
 	_setup_player_tip_bubble_style()
 	_setup_help_hint_ui()
+	_setup_turn_phase_panel()
 	set_process(false)
 
 
@@ -98,6 +106,22 @@ func _setup_player_tip_bubble_style() -> void:
 	sb.content_margin_top = 6
 	sb.content_margin_bottom = 6
 	_player_tip_bubble.add_theme_stylebox_override("panel", sb)
+
+
+func _setup_turn_phase_panel() -> void:
+	var panel := get_node_or_null("TurnPhasePanel") as PanelContainer
+	if panel == null:
+		return
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.14, 0.15, 0.22, 0.94)
+	sb.set_corner_radius_all(10)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.38, 0.4, 0.52, 0.85)
+	panel.add_theme_stylebox_override("panel", sb)
 
 
 func _setup_help_hint_ui() -> void:
@@ -192,6 +216,7 @@ func start_battle() -> void:
 	_build_card_map()
 	_pick_monster()
 	_monster_hp = int(_monster_entry.get("health", 1))
+	_enemy_battle_shield = 0
 	_battle_shield = 0
 
 	var deck_raw: Variant = _game_data.get("player_deck", [])
@@ -214,6 +239,7 @@ func start_battle() -> void:
 	_refresh_monster_ui()
 	_refresh_player_labels()
 	_refresh_buff_ui()
+	_update_turn_indicator()
 	if _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
 	set_process(false)
@@ -239,6 +265,7 @@ func end_battle() -> void:
 	_hide_help_hint_bubble()
 	visible = false
 	_battle_shield = 0
+	_enemy_battle_shield = 0
 	_cancel_drag()
 	set_process(false)
 	if _game_main != null and _game_main.has_method("refresh_top_bar"):
@@ -263,6 +290,7 @@ func _pick_monster() -> void:
 			"battle_target_name": "未知之影",
 			"health": 100,
 			"img": FALLBACK_ENEMY_TEX,
+			"card_id_list": [],
 		}
 		return
 	var pick: Variant = pool[randi_range(0, pool.size() - 1)]
@@ -296,6 +324,16 @@ func _refresh_monster_ui() -> void:
 	_enemy_tex.texture = _enemy_texture()
 	_enemy_name.text = str(_monster_entry.get("battle_target_name", "敌人"))
 	_enemy_hp.text = "生命: %d" % _monster_hp
+	if _enemy_shield != null:
+		_enemy_shield.text = "护盾 %d" % _enemy_battle_shield
+
+
+func _update_turn_indicator() -> void:
+	if _turn_phase_label == null:
+		return
+	_turn_phase_label.text = "玩家回合" if _player_turn else "怪物回合"
+	if _end_turn != null:
+		_end_turn.disabled = not _player_turn
 
 
 func _refresh_player_labels() -> void:
@@ -314,6 +352,7 @@ func _refresh_player_labels() -> void:
 func _battle_stat_snapshot_before_pay() -> Dictionary:
 	return {
 		"monster_hp": _monster_hp,
+		"enemy_shield": _enemy_battle_shield,
 		"battle_shield": _battle_shield,
 		"health": int(_game_data.get("health", 0)),
 		"mana": int(_game_data.get("mana", 0)),
@@ -325,17 +364,19 @@ func _tween_battle_stat_labels_if_changed(snap: Dictionary, duration: float) -> 
 	var mh := int(_game_data.get("max_health", 1))
 	var mm := int(_game_data.get("max_mana", 1))
 	var e_mon := _monster_hp
+	var e_esh := _enemy_battle_shield
 	var e_sh := _battle_shield
 	var e_hp := int(_game_data.get("health", 0))
 	var e_mn := int(_game_data.get("mana", 0))
 	var e_ac := int(_game_data.get("action", 0))
 	var s_mon := int(snap.get("monster_hp", 0))
+	var s_esh := int(snap.get("enemy_shield", 0))
 	var s_sh := int(snap.get("battle_shield", 0))
 	var s_hp := int(snap.get("health", 0))
 	var s_mn := int(snap.get("mana", 0))
 	var s_ac := int(snap.get("action", 0))
 
-	if s_mon == e_mon and s_sh == e_sh and s_hp == e_hp and s_mn == e_mn and s_ac == e_ac:
+	if s_mon == e_mon and s_esh == e_esh and s_sh == e_sh and s_hp == e_hp and s_mn == e_mn and s_ac == e_ac:
 		return
 
 	if _stat_display_tween != null and _stat_display_tween.is_valid():
@@ -345,6 +386,8 @@ func _tween_battle_stat_labels_if_changed(snap: Dictionary, duration: float) -> 
 	var update_stats := func(alpha: float) -> void:
 		var a := clampf(alpha, 0.0, 1.0)
 		_enemy_hp.text = "生命: %d" % int(round(lerpf(float(s_mon), float(e_mon), a)))
+		if _enemy_shield != null:
+			_enemy_shield.text = "护盾 %d" % int(round(lerpf(float(s_esh), float(e_esh), a)))
 		_player_shield.text = "护盾 %d" % int(round(lerpf(float(s_sh), float(e_sh), a)))
 		_player_hp.text = "生命 %d/%d" % [int(round(lerpf(float(s_hp), float(e_hp), a))), mh]
 		_player_mana.text = "法力 %d/%d" % [int(round(lerpf(float(s_mn), float(e_mn), a))), mm]
@@ -368,6 +411,10 @@ func _draw_cards(n: int) -> void:
 
 
 func _build_hand_card_button(cid: int) -> Button:
+	return _build_card_button_internal(cid, true)
+
+
+func _build_card_button_internal(cid: int, connect_hand_drag: bool) -> Button:
 	if not _card_map.has(cid):
 		return null
 	var card_def: Dictionary = _card_map[cid]
@@ -380,7 +427,8 @@ func _build_hand_card_button(cid: int) -> Button:
 	if wsize == Vector2.ZERO and widget is Control:
 		wsize = (widget as Control).size
 	btn.custom_minimum_size = wsize + Vector2(8, 8)
-	btn.gui_input.connect(_on_hand_card_gui_input.bind(btn, cid))
+	if connect_hand_drag:
+		btn.gui_input.connect(_on_hand_card_gui_input.bind(btn, cid))
 	return btn
 
 
@@ -557,10 +605,10 @@ func _on_end_turn_pressed() -> void:
 		_cancel_drag()
 	##回合结束buff触发方法
 	_trigger_buffs_at_player_turn_end()
-	_player_turn = false
-
 	if _monster_hp > 0:
-		_monster_turn()
+		_player_turn = false
+		_update_turn_indicator()
+		await _monster_turn()
 
 	_refresh_player_labels()
 	if _game_main != null and _game_main.has_method("refresh_top_bar"):
@@ -597,9 +645,7 @@ func _trigger_buffs_at_player_turn_end() -> void:
 func _trigger_buffs_at_enemy_turn_end() -> void:
 	for b in _enemy_buffs:
 		if b is Dictionary and str((b as Dictionary).get("buff_type", "")) == "turn_finish":
-			
-			##实际处理部分
-			_trigger_buff_effect(b as Dictionary, false)
+			await _trigger_buff_effect(b as Dictionary, false)
 	_refresh_buff_ui()
 
 
@@ -675,12 +721,129 @@ func _stack_damage_double_buff_on_player() -> void:
 	_refresh_buff_ui()
 
 
+func _stack_damage_double_buff_on_enemy() -> void:
+	_add_or_stack_buff(_enemy_buffs, {
+		"buff_type": "damage",
+		"buff_name": "伤害翻倍",
+		"buff_desc": "下一次造成的伤害翻倍（可叠加，每次造成伤害消耗一层）",
+		"double_damage": 1,
+	})
+	_refresh_buff_ui()
+
+
+func _consume_one_damage_double_stack_from_enemy_and_multiply(amount: int) -> int:
+	var out := amount
+	var idx := _find_buff_index_damage_double_stack(_enemy_buffs)
+	if idx < 0:
+		return out
+	var b: Dictionary = _enemy_buffs[idx]
+	var stacks := int(b.get("buff_count", 1))
+	if stacks <= 0:
+		_enemy_buffs.remove_at(idx)
+		return out
+	out *= 2
+	stacks -= 1
+	if stacks <= 0:
+		_enemy_buffs.remove_at(idx)
+	else:
+		b["buff_count"] = stacks
+	_refresh_buff_ui()
+	return out
+
+
+func _pick_random_monster_card_id() -> int:
+	var raw: Variant = _monster_entry.get("card_id_list", [])
+	if typeof(raw) != TYPE_ARRAY or raw.is_empty():
+		return 0
+	var pick: Variant = raw[randi_range(0, raw.size() - 1)]
+	var s := str(pick).strip_edges()
+	if s.is_empty():
+		return 0
+	return int(s)
+
+
+func _showcase_and_resolve_monster_card(cid: int) -> void:
+	if not _card_map.has(cid):
+		return
+	var card: Dictionary = _card_map[cid]
+	var btn := _build_card_button_internal(cid, false)
+	if btn == null:
+		return
+	_play_zone.add_child(btn)
+	btn.z_index = 6
+	btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var psz: Vector2 = btn.size
+	if psz == Vector2.ZERO:
+		psz = btn.custom_minimum_size
+	var pcm := _play_zone.get_global_rect()
+	btn.global_position = pcm.get_center() - psz * 0.5
+	var snap := _battle_stat_snapshot_before_pay()
+	await get_tree().create_timer(_MONSTER_CARD_SHOWCASE_HOLD_SEC).timeout
+	await _apply_monster_battle_card_effect(card)
+	await _tween_battle_stat_labels_if_changed(snap, _STAT_TWEEN_SEC)
+	if is_instance_valid(btn):
+		btn.queue_free()
+
+
+func _append_buff_for_monster_card(card: Dictionary, buff: Dictionary) -> void:
+	var tgt := int(card.get("target", 0))
+	if tgt == 1:
+		_add_or_stack_buff(_player_buffs, buff)
+	else:
+		_add_or_stack_buff(_enemy_buffs, buff)
+	_refresh_buff_ui()
+
+
+func _apply_monster_battle_card_effect(card: Dictionary) -> void:
+	var effect_raw: Variant = card.get("effect", {})
+	if not effect_raw is Dictionary:
+		return
+	var effect: Dictionary = effect_raw
+	for k in effect.keys():
+		var key := str(k)
+		var v: Variant = effect[key]
+		match key:
+			"damage":
+				var amt := int(round(float(v)))
+				_apply_battle_damage(amt, DAMAGE_SOURCE_MONSTER_CARD, DAMAGE_TARGET_PLAYER)
+			"mp":
+				pass
+			"shield":
+				var add_sh := int(round(float(v)))
+				_enemy_battle_shield = maxi(0, _enemy_battle_shield + add_sh)
+			"double_damage":
+				_stack_damage_double_buff_on_enemy()
+			"draw", "deaw":
+				pass
+			"buff":
+				if v is Dictionary:
+					_append_buff_for_monster_card(card, v as Dictionary)
+			_:
+				pass
+
+
 func _monster_turn() -> void:
-	print("monster_turn!dmg=8")
 	if _monster_hp <= 0:
 		return
-	_apply_battle_damage(8, DAMAGE_SOURCE_ENEMY_ATTACK, DAMAGE_TARGET_PLAYER)
-	_trigger_buffs_at_enemy_turn_end()
+	_play_resolve_in_progress = true
+	for _i in _MONSTER_CARDS_PER_TURN:
+		if _monster_hp <= 0 or int(_game_data.get("health", 0)) <= 0:
+			break
+		var cid := _pick_random_monster_card_id()
+		if cid > 0 and _card_map.has(cid):
+			await _showcase_and_resolve_monster_card(cid)
+		else:
+			var snap := _battle_stat_snapshot_before_pay()
+			_apply_battle_damage(8, DAMAGE_SOURCE_ENEMY_ATTACK, DAMAGE_TARGET_PLAYER)
+			await _tween_battle_stat_labels_if_changed(snap, _STAT_TWEEN_SEC)
+	_refresh_monster_ui()
+	_refresh_player_labels()
+	if _game_main != null and _game_main.has_method("refresh_top_bar"):
+		_game_main.refresh_top_bar()
+	await _trigger_buffs_at_enemy_turn_end()
+	_play_resolve_in_progress = false
 
 
 func _buff_merge_key(buff: Dictionary) -> String:
@@ -717,8 +880,19 @@ func _apply_battle_damage(base_damage: int, damage_source: String, damage_target
 	if damage_target == DAMAGE_TARGET_ENEMY:
 		if player_is_dealer:
 			amt = _consume_one_damage_double_stack_and_multiply(amt)
+		if _enemy_battle_shield > 0:
+			var absorbed_en: int = mini(_enemy_battle_shield, amt)
+			_enemy_battle_shield -= absorbed_en
+			amt -= absorbed_en
 		_monster_hp = maxi(0, _monster_hp - amt)
 	elif damage_target == DAMAGE_TARGET_PLAYER:
+		var enemy_is_dealer := (
+			damage_source == DAMAGE_SOURCE_MONSTER_CARD
+			or damage_source == DAMAGE_SOURCE_ENEMY_ATTACK
+			or damage_source == DAMAGE_SOURCE_ENEMY_BUFF
+		)
+		if enemy_is_dealer:
+			amt = _consume_one_damage_double_stack_from_enemy_and_multiply(amt)
 		_apply_damage_to_player(amt)
 
 
@@ -777,6 +951,7 @@ func _apply_damage_to_player(amount: int) -> void:
 
 func _begin_player_turn() -> void:
 	_player_turn = true
+	_update_turn_indicator()
 	_game_data["action"] = int(_game_data.get("max_action", 0))
 	await _draw_cards(2)
 	_refresh_player_labels()
