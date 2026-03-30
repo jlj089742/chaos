@@ -25,3 +25,11 @@ static func entries_for_year(year: int) -> Array:
 			return table["1"] as Array
 		return []
 	return table[key] as Array
+
+
+## `battle_repo.json` 根下 `"boss"` 数组，供 Boss 交互点开战使用（与普通关卡年份池无关）。
+static func boss_entries() -> Array:
+	var table := load_table()
+	if not table.has("boss") or typeof(table["boss"]) != TYPE_ARRAY:
+		return []
+	return table["boss"] as Array

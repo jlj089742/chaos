@@ -1,0 +1,154 @@
+{
+	"cards": [
+		{
+			"card_id": 1001,
+			"card_name": "利爪",
+			"desc":"造成6点伤害",
+			"mp_cost": 3,
+			"action_cost": 1,
+			"effect": {
+				"damage": 6
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1002,
+			"card_name": "鬼火",
+			"desc":"增加4点护盾",
+			"mp_cost": 2,
+			"action_cost": 0,
+			"effect": {
+				"shield": 4
+			},
+			"target": 0
+		},
+		{
+			"card_id": 1003,
+			"card_name": "鬼影重重",
+			"desc":"每回合结束，造成2点伤害",
+			"mp_cost": 6,
+			"action_cost": 2,
+			"effect": {
+				"buff": {
+					"buff_name":"鬼影重重",
+					"buff_desc":"每回合结束，造成2点伤害",
+					"buff_type":"turn_finish",
+					"damage":2
+				}
+			},
+			"target": 0
+		},
+		{
+			"card_id": 1004,
+			"card_name": "力劈",
+			"desc":"造成10点伤害",
+			"mp_cost": 3,
+			"action_cost": 1,
+			"effect": {
+				"damage": 10
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1005,
+			"card_name": "硬化",
+			"desc":"增加6点护盾",
+			"mp_cost": 2,
+			"action_cost": 0,
+			"effect": {
+				"shield": 6
+			},
+			"target": 0
+		},
+		{
+			"card_id": 1006,
+			"card_name": "愤怒",
+			"desc":"提升2点伤害增幅",
+			"mp_cost": 6,
+			"action_cost": 2,
+			"effect": {
+				"buff": {
+					"buff_name":"伤害增幅",
+					"buff_desc":"所有伤害增幅1点",
+					"buff_type":"damage",
+					"increase":1
+				},
+				"buff_count":2
+			},
+			"target": 0
+		},
+		{
+			"card_id": 1007,
+			"card_name": "黄泉渡",
+			"desc":"造成18点伤害",
+			"mp_cost": 10,
+			"action_cost": 1,
+			"effect": {
+				"damage": 18
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1008,
+			"card_name": "不灭",
+			"desc":"增加12点护盾",
+			"mp_cost": 10,
+			"action_cost": 0,
+			"effect": {
+				"shield": 12
+			},
+			"target": 0
+		},
+		{
+			"card_id": 1009,
+			"card_name": "鬼域",
+			"desc":"完全免疫下1次伤害",
+			"mp_cost": 10,
+			"action_cost": 1,
+			"effect": {
+				"buff": {
+					"buff_name":"鬼域",
+					"buff_desc":"完全免疫下1次伤害",
+					"buff_type":"damage",
+					"ineffective":1
+				}
+			},
+			"target": 0
+		},
+		{
+			"card_id": 1010,
+			"card_name": "夺魂刺",
+			"desc":"造成4点伤害，消减12法力值",
+			"mp_cost": 10,
+			"action_cost": 1,
+			"effect": {
+				"damage": 4,
+				"mana": -12
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1011,
+			"card_name": "鬼王令",
+			"desc":"减少4点血量上限",
+			"mp_cost": 10,
+			"action_cost": 1,
+			"effect": {
+				"max_health": -4
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1012,
+			"card_name": "百鬼夜行",
+			"desc":"造成1点伤害6次",
+			"mp_cost": 10,
+			"action_cost": 1,
+			"effect": {
+				"damage": 1,
+				"damage_count": 6
+			},
+			"target": 1
+		}
+	]
+}

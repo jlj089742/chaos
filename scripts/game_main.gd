@@ -516,6 +516,10 @@ func _on_interaction_spot_clicked(spot_type: String) -> void:
 		if _battle_overlay != null and _battle_overlay.has_method("start_battle"):
 			_battle_overlay.start_battle()
 		return
+	if spot_type == "boss":
+		if _battle_overlay != null and _battle_overlay.has_method("start_battle"):
+			_battle_overlay.start_battle(true)
+		return
 	interaction_popup.visible = false
 	start_interaction_popup.visible = false
 	shop_popup.visible = false

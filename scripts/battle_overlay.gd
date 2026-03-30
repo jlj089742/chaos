@@ -25,7 +25,8 @@ const DAMAGE_TARGET_PLAYER := "player"
 const DAMAGE_TARGET_ENEMY := "enemy"
 
 ## 玩家身上「下一次造成伤害翻倍」的可叠加 buff；结算 outgoing 伤害时每层翻倍一次并消耗一层。
-## 规范：① `buff_type` 为 legacy `"damage_double"`；② `buff_type` 为 `"damage"` 且 `double_damage` > 0（如通明）。
+## 规范：① `buff_type` 为 legacy `"damage_double"`；② `buff_type` 为 `"damage"` 且 `double_damage` > 0（如通明）；
+## ③ `buff_type` 为 `"damage"` 且带 `increase` 字段：持久伤害增幅，按 `increase * buff_count` 加到每次玩家造成的敌方伤害上（如愤怒）。
 const BUFF_TYPE_DAMAGE_DOUBLE := "damage_double"
 
 ## 战斗页右上角「？」气泡的提示全文。多行请直接在本字符串里换行。
@@ -53,6 +54,12 @@ const BATTLE_HELP_HINT_TEXT := "战斗说明：\n卡牌左上角为法力值消�
 @onready var _help_hint_button: Button = $BattleHelpRoot/HelpHintButton
 @onready var _help_hint_bubble: PanelContainer = $BattleHelpRoot/HelpHintBubble
 @onready var _help_hint_label: Label = $BattleHelpRoot/HelpHintBubble/HelpHintLabel
+@onready var _battle_log_btn: Button = $BattleLogButton
+@onready var _deck_remain_label: Label = $DeckRemainLabel
+@onready var _battle_log_layer: Control = $BattleLogLayer
+@onready var _battle_log_dim: ColorRect = $BattleLogLayer/BattleLogDim
+@onready var _battle_log_close: Button = $BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow/BattleLogClose
+@onready var _battle_log_text: TextEdit = $BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogScroll/BattleLogText
 
 var _game_main: Node = null
 var _game_data: Dictionary = {}
@@ -83,6 +90,10 @@ var _enemy_buffs: Array = []
 var _play_resolve_in_progress: bool = false
 var _tip_tween: Tween = null
 var _stat_display_tween: Tween = null
+## 为 true 时从 `battle_repo.json` 的 `boss` 列表取怪，否则按年份取普通池。
+var _use_boss_battle: bool = false
+## 与现有 print 文案同步，供战斗日志面板展示
+var _battle_log_lines: PackedStringArray = PackedStringArray()
 
 func setup(main: Node) -> void:
 	_game_main = main
@@ -91,10 +102,65 @@ func setup(main: Node) -> void:
 func _ready() -> void:
 	_end_turn.pressed.connect(_on_end_turn_pressed)
 	_help_hint_button.pressed.connect(_on_help_hint_button_pressed)
+	_battle_log_btn.pressed.connect(_on_battle_log_button_pressed)
+	_battle_log_close.pressed.connect(_on_battle_log_close_pressed)
+	_battle_log_dim.gui_input.connect(_on_battle_log_dim_gui_input)
 	_setup_player_tip_bubble_style()
 	_setup_help_hint_ui()
 	_setup_turn_phase_panel()
+	_setup_battle_log_panel()
 	set_process(false)
+
+
+func _battle_print(line: String) -> void:
+	print(line)
+	_battle_log_lines.append(line)
+
+
+func _sync_battle_log_textedit() -> void:
+	if _battle_log_text == null:
+		return
+	_battle_log_text.text = "\n".join(_battle_log_lines)
+
+
+func _refresh_deck_remain_label() -> void:
+	if _deck_remain_label != null:
+		_deck_remain_label.text = "牌库剩余：%d" % _draw_pile.size()
+
+
+func _on_battle_log_button_pressed() -> void:
+	_hide_help_hint_bubble()
+	_battle_log_layer.visible = true
+	_sync_battle_log_textedit()
+
+
+func _on_battle_log_close_pressed() -> void:
+	_battle_log_layer.visible = false
+
+
+func _on_battle_log_dim_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
+			_battle_log_layer.visible = false
+
+
+func _setup_battle_log_panel() -> void:
+	var panel := get_node_or_null("BattleLogLayer/BattleLogPanel") as PanelContainer
+	if panel == null:
+		return
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.12, 0.13, 0.2, 0.98)
+	sb.set_corner_radius_all(12)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 14
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.35, 0.38, 0.5, 0.9)
+	panel.add_theme_stylebox_override("panel", sb)
+	if _battle_log_text != null:
+		_battle_log_text.editable = false
 
 
 func _setup_player_tip_bubble_style() -> void:
@@ -202,8 +268,11 @@ func _process(_delta: float) -> void:
 		_dragging_button.global_position = get_global_mouse_position() + _drag_pickup_offset
 
 
-func start_battle() -> void:
-	print("start_battle!")
+func start_battle(use_boss: bool = false) -> void:
+	_use_boss_battle = use_boss
+	_battle_log_lines.clear()
+	_sync_battle_log_textedit()
+	_battle_print("对战开始!")
 	if _game_main == null:
 		return
 	visible = true
@@ -224,6 +293,7 @@ func start_battle() -> void:
 	deck.shuffle()
 	_draw_pile = deck
 	_discard.clear()
+	_refresh_deck_remain_label()
 	_hand_entries.clear()
 	_player_buffs.clear()
 	_enemy_buffs.clear()
@@ -243,7 +313,8 @@ func start_battle() -> void:
 	if _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
 	set_process(false)
-
+	_refresh_deck_remain_label()
+	_battle_print("对战初始化完毕")
 
 func _on_monster_defeated() -> void:
 	end_battle()
@@ -252,7 +323,9 @@ func _on_monster_defeated() -> void:
 
 
 func end_battle() -> void:
-	print("end_battle!")
+	_battle_print("对战结束")
+	if _battle_log_layer != null:
+		_battle_log_layer.visible = false
 	if _stat_display_tween != null and _stat_display_tween.is_valid():
 		_stat_display_tween.kill()
 	_stat_display_tween = null
@@ -268,6 +341,7 @@ func end_battle() -> void:
 	_enemy_battle_shield = 0
 	_cancel_drag()
 	set_process(false)
+	_use_boss_battle = false
 	if _game_main != null and _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
 
@@ -280,11 +354,22 @@ func _build_card_map() -> void:
 			var cid := int(d.get("card_id", 0))
 			if cid != 0:
 				_card_map[cid] = d.duplicate(true)
+	## 怪物出牌、`card_id_list` 引用的是 monster_info.json 中的卡。
+	for item in MonsterInfoConfig.load_cards():
+		if item is Dictionary:
+			var d2: Dictionary = item
+			var cid2 := int(d2.get("card_id", 0))
+			if cid2 != 0:
+				_card_map[cid2] = d2.duplicate(true)
 
 
 func _pick_monster() -> void:
-	var year := int(_game_data.get("year", 1))
-	var pool: Array = BattleRepoConfig.entries_for_year(year)
+	var pool: Array = []
+	if _use_boss_battle:
+		pool = BattleRepoConfig.boss_entries()
+	else:
+		var year := int(_game_data.get("year", 1))
+		pool = BattleRepoConfig.entries_for_year(year)
 	if pool.is_empty():
 		_monster_entry = {
 			"battle_target_name": "未知之影",
@@ -408,6 +493,9 @@ func _draw_cards(n: int) -> void:
 			break
 		var cid := int(_draw_pile.pop_back())
 		await _animate_draw_card_to_hand(cid)
+		_refresh_deck_remain_label()
+		_battle_print("抽到卡牌" + str(cid))
+	_refresh_deck_remain_label()
 
 
 func _build_hand_card_button(cid: int) -> Button:
@@ -616,12 +704,12 @@ func _on_end_turn_pressed() -> void:
 	_refresh_monster_ui()
 
 	if _monster_hp <= 0:
-		print("monster fail")
+		_battle_print("monster fail")
 		await _on_monster_defeated()
 		return
 
 	if int(_game_data.get("health", 0)) <= 0:
-		print("gamer fail")
+		_battle_print("gamer fail")
 		end_battle()
 		if _game_main != null and _game_main.has_method("play_player_death_sequence"):
 			await _game_main.play_player_death_sequence()
@@ -662,8 +750,10 @@ func _trigger_buff_effect(buff: Dictionary, owner_is_player: bool) -> void:
 			var n := maxi(1, int(buff.get("buff_count", 1)))
 			for _i in n:
 				if owner_is_player:
+					_battle_print("触发buff效果："+buff.get("buff_name"))
 					_apply_battle_damage(base, DAMAGE_SOURCE_PLAYER_BUFF, DAMAGE_TARGET_ENEMY)
 				else:
+					_battle_print("触发buff效果："+buff.get("buff_name"))
 					_apply_battle_damage(base, DAMAGE_SOURCE_ENEMY_BUFF, DAMAGE_TARGET_PLAYER)
 		_:
 			pass
@@ -705,8 +795,10 @@ func _refresh_buff_row(row: HBoxContainer, buffs: Array) -> void:
 func _append_buff_for_card_target(card: Dictionary, buff: Dictionary) -> void:
 	var tgt := int(card.get("target", 0))
 	if tgt == 1:
+		_battle_print("施加buff给敌人："+buff.get("buff_name"))
 		_add_or_stack_buff(_enemy_buffs, buff)
 	else:
+		_battle_print("施加buff给自己："+buff.get("buff_name"))
 		_add_or_stack_buff(_player_buffs, buff)
 	_refresh_buff_ui()
 
@@ -766,6 +858,7 @@ func _showcase_and_resolve_monster_card(cid: int) -> void:
 	if not _card_map.has(cid):
 		return
 	var card: Dictionary = _card_map[cid]
+	_battle_print("怪物打出卡牌："+card.get("card_name"))
 	var btn := _build_card_button_internal(cid, false)
 	if btn == null:
 		return
@@ -790,8 +883,10 @@ func _showcase_and_resolve_monster_card(cid: int) -> void:
 func _append_buff_for_monster_card(card: Dictionary, buff: Dictionary) -> void:
 	var tgt := int(card.get("target", 0))
 	if tgt == 1:
+		_battle_print("玩家增加buff："+buff.get("buff_name"))
 		_add_or_stack_buff(_player_buffs, buff)
 	else:
+		_battle_print("怪物增加buff："+buff.get("buff_name"))
 		_add_or_stack_buff(_enemy_buffs, buff)
 	_refresh_buff_ui()
 
@@ -801,30 +896,77 @@ func _apply_monster_battle_card_effect(card: Dictionary) -> void:
 	if not effect_raw is Dictionary:
 		return
 	var effect: Dictionary = effect_raw
+	# 百鬼夜行：按 damage + damage_count 多次结算
+	var handled_multi_damage := false
+	if effect.has("damage") and effect.has("damage_count"):
+		var dmg := int(round(float(effect.get("damage", 0))))
+		var n := int(round(float(effect.get("damage_count", 1))))
+		n = maxi(1, n)
+		for _i in n:
+			_apply_battle_damage(dmg, DAMAGE_SOURCE_MONSTER_CARD, DAMAGE_TARGET_PLAYER)
+		handled_multi_damage = true
+
 	for k in effect.keys():
 		var key := str(k)
 		var v: Variant = effect[key]
 		match key:
 			"damage":
+				if handled_multi_damage:
+					continue
 				var amt := int(round(float(v)))
 				_apply_battle_damage(amt, DAMAGE_SOURCE_MONSTER_CARD, DAMAGE_TARGET_PLAYER)
+			"damage_count":
+				# 已在百鬼夜行特殊分支中处理
+				pass
 			"mp":
 				pass
+			"mana":
+				# 夺魂刺：造成伤害同时减少目标法力
+				var delta := int(round(float(v)))
+				var cur := int(_game_data.get("mana", 0))
+				var mx := int(_game_data.get("max_mana", 0))
+				_game_data["mana"] = clampi(cur + delta, 0, mx)
+				if delta < 0:
+					_battle_print("夺魂刺减少法力：" + str(-delta))
+				elif delta > 0:
+					_battle_print("夺魂刺增加法力：" + str(delta))
 			"shield":
 				var add_sh := int(round(float(v)))
 				_enemy_battle_shield = maxi(0, _enemy_battle_shield + add_sh)
+				_battle_print("怪物获得护盾："+str(add_sh))
 			"double_damage":
 				_stack_damage_double_buff_on_enemy()
+			"max_health":
+				# 鬼王令：减少目标血量上限，且当前生命不能超过上限
+				var delta_hp_max := int(round(float(v)))
+				var cur_max := int(_game_data.get("max_health", 0))
+				var new_max := maxi(0, cur_max + delta_hp_max)
+				_game_data["max_health"] = new_max
+				_game_data["health"] = mini(int(_game_data.get("health", 0)), new_max)
+				if delta_hp_max < 0:
+					_battle_print("鬼王令减少生命上限：" + str(-delta_hp_max))
+				elif delta_hp_max > 0:
+					_battle_print("鬼王令增加生命上限：" + str(delta_hp_max))
+				if _game_main != null and _game_main.has_method("_clamp_primary_resources"):
+					_game_main._clamp_primary_resources()
 			"draw", "deaw":
 				pass
 			"buff":
 				if v is Dictionary:
-					_append_buff_for_monster_card(card, v as Dictionary)
+					# 支持 effect 层级 buff_count：表示对同一 buff 施加 N 次
+					var bd := (v as Dictionary).duplicate(true)
+					var outer_cnt := int(round(float(effect.get("buff_count", 1))))
+					if outer_cnt <= 0:
+						outer_cnt = 1
+					var inner_cnt := int(round(float(bd.get("buff_count", 1))))
+					bd["buff_count"] = maxi(1, inner_cnt) * maxi(1, outer_cnt)
+					_append_buff_for_monster_card(card, bd)
 			_:
 				pass
 
 
 func _monster_turn() -> void:
+	_battle_print("开始怪物回合")
 	if _monster_hp <= 0:
 		return
 	_play_resolve_in_progress = true
@@ -853,6 +995,14 @@ func _buff_merge_key(buff: Dictionary) -> String:
 ## 相同 buff_type + buff_name 视为同一种 buff，重复施加仅叠 buff_count。
 func _add_or_stack_buff(buffs: Array, buff: Dictionary) -> void:
 	var incoming: Dictionary = buff.duplicate(true)
+	# 支持「初始就施加 N 层」：鬼域配置用 ineffective 表示初始层数。
+	# 没给 buff_count 的情况下，如果存在 ineffective，则把它当作初始 buff_count。
+	if not incoming.has("buff_count"):
+		if incoming.has("ineffective"):
+			var n := int(round(float(incoming.get("ineffective", 1))))
+			incoming["buff_count"] = maxi(1, n)
+		else:
+			incoming["buff_count"] = 1
 	var key := _buff_merge_key(incoming)
 	var idx := -1
 	for i in buffs.size():
@@ -860,26 +1010,64 @@ func _add_or_stack_buff(buffs: Array, buff: Dictionary) -> void:
 			idx = i
 			break
 	if idx < 0:
-		var ic := int(round(float(incoming.get("buff_count", 1))))
-		incoming["buff_count"] = maxi(1, ic)
 		buffs.append(incoming)
 	else:
 		var b: Dictionary = buffs[idx]
-		b["buff_count"] = int(b.get("buff_count", 1)) + 1
+		# 新施加的 buff 可能携带初始层数（例如鬼域 ineffective）。
+		b["buff_count"] = int(b.get("buff_count", 1)) + int(incoming.get("buff_count", 1))
 
 
-## 战斗内所有扣血入口：基础伤害 + 来源 + 目标；敌方受伤害时按需消耗玩家「伤害翻倍」层数。
+func _try_consume_one_inffective_buff_on_enemy_if_damage(amt: int) -> int:
+	# 鬼域：当怪物收到一次伤害（amt > 0）时，免疫一次伤害并消耗 1 层。
+	if amt <= 0:
+		return amt
+	for i in _enemy_buffs.size():
+		if not (_enemy_buffs[i] is Dictionary):
+			continue
+		var b: Dictionary = _enemy_buffs[i] as Dictionary
+		if str(b.get("buff_name", "")) != "鬼域":
+			continue
+		var inef := int(round(float(b.get("ineffective", 0))))
+		if inef <= 0:
+			continue
+		var stacks := int(b.get("buff_count", 1))
+		if stacks <= 0:
+			_enemy_buffs.remove_at(i)
+			_refresh_buff_ui()
+			return 0
+		stacks -= 1
+		if stacks <= 0:
+			_enemy_buffs.remove_at(i)
+		else:
+			b["buff_count"] = stacks
+		_refresh_buff_ui()
+		return 0
+	return amt
+
+
+## 战斗内所有扣血入口：基础伤害 + 来源 + 目标；敌方受伤害时按需消耗玩家「伤害翻倍」层数，并叠加持久伤害增幅。
 func _apply_battle_damage(base_damage: int, damage_source: String, damage_target: String) -> void:
 	var amt: int = maxi(0, base_damage)
-	if amt <= 0:
-		return
 	var player_is_dealer: bool = (
 		damage_source == DAMAGE_SOURCE_CARD
 		or damage_source == DAMAGE_SOURCE_PLAYER_BUFF
 	)
 	if damage_target == DAMAGE_TARGET_ENEMY:
+		var amp := 0
 		if player_is_dealer:
-			amt = _consume_one_damage_double_stack_and_multiply(amt)
+			amp = _player_persistent_damage_amp_total()
+		if amt <= 0 and amp <= 0:
+			return
+		if player_is_dealer:
+			# 持久增幅应作用于“最终伤害数值”，因此先加增幅，再结算翻倍buff。
+			amt += amp
+			if amt > 0:
+				amt = _consume_one_damage_double_stack_and_multiply(amt)
+		elif amt <= 0:
+			return
+		# 怪物受伤：如果有「鬼域」buff，免疫一次伤害并消耗一层。
+		amt = _try_consume_one_inffective_buff_on_enemy_if_damage(amt)
+		_battle_print("造成"+str(amt)+"伤害")
 		if _enemy_battle_shield > 0:
 			var absorbed_en: int = mini(_enemy_battle_shield, amt)
 			_enemy_battle_shield -= absorbed_en
@@ -892,8 +1080,55 @@ func _apply_battle_damage(base_damage: int, damage_source: String, damage_target
 			or damage_source == DAMAGE_SOURCE_ENEMY_BUFF
 		)
 		if enemy_is_dealer:
-			amt = _consume_one_damage_double_stack_from_enemy_and_multiply(amt)
+			var amp := _enemy_persistent_damage_amp_total()
+			if amt <= 0 and amp <= 0:
+				return
+			# 持久增幅应作用于最终伤害数值，因此先加增幅，再结算翻倍buff。
+			amt += amp
+			if amt > 0:
+				amt = _consume_one_damage_double_stack_from_enemy_and_multiply(amt)
+		elif amt <= 0:
+			return
+		_battle_print("造成"+str(amt)+"伤害")
 		_apply_damage_to_player(amt)
+
+
+func _buff_has_persistent_damage_increase(buff: Dictionary) -> bool:
+	if str(buff.get("buff_type", "")) != "damage":
+		return false
+	if not buff.has("increase"):
+		return false
+	return int(round(float(buff.get("increase", 0)))) != 0
+
+
+## 玩家身上所有「伤害增幅」类 buff 的合计：`sum(increase * buff_count)`，战斗内持续生效、不消耗层数。
+func _player_persistent_damage_amp_total() -> int:
+	var total := 0
+	for item in _player_buffs:
+		if not item is Dictionary:
+			continue
+		var b: Dictionary = item
+		if not _buff_has_persistent_damage_increase(b):
+			continue
+		var per := int(round(float(b.get("increase", 0))))
+		var stacks := maxi(1, int(b.get("buff_count", 1)))
+		total += per * stacks
+	return total
+
+
+## 怪物身上所有「伤害增幅」类 buff 的合计：`sum(increase * buff_count)`。
+func _enemy_persistent_damage_amp_total() -> int:
+	var total := 0
+	for item in _enemy_buffs:
+		if not item is Dictionary:
+			continue
+		var b: Dictionary = item
+		if not _buff_has_persistent_damage_increase(b):
+			continue
+		var per := int(round(float(b.get("increase", 0))))
+		var stacks := maxi(1, int(b.get("buff_count", 1)))
+		total += per * stacks
+	return total
 
 
 func _buff_is_damage_double_stack(buff: Dictionary) -> bool:
@@ -960,6 +1195,7 @@ func _begin_player_turn() -> void:
 
 
 func _apply_battle_card_effect(card: Dictionary) -> void:
+	_battle_print("玩家打出卡牌:"+card.get("card_name"))
 	var effect_raw: Variant = card.get("effect", {})
 	if not effect_raw is Dictionary:
 		return
@@ -976,9 +1212,11 @@ func _apply_battle_card_effect(card: Dictionary) -> void:
 				var cur := int(_game_data.get("mana", 0))
 				var mx := int(_game_data.get("max_mana", 0))
 				_game_data["mana"] = clampi(cur + add, 0, mx)
+				_battle_print("法力恢复"+str(add)+"点")
 			"shield":
 				var add_sh := int(round(float(v)))
 				_battle_shield = maxi(0, _battle_shield + add_sh)
+				_battle_print("护盾增加"+str(add_sh)+"点")
 			"double_damage":
 				_stack_damage_double_buff_on_player()
 			"draw", "deaw":
@@ -986,6 +1224,15 @@ func _apply_battle_card_effect(card: Dictionary) -> void:
 				await _draw_cards(n)
 			"buff":
 				if v is Dictionary:
-					_append_buff_for_card_target(card, v as Dictionary)
+					# 支持两种配置写法：
+					# 1) effect.buff 内直接带 buff_count
+					# 2) effect 层级单独提供 buff_count：表示对该 buff 施加 N 次
+					var bd := (v as Dictionary).duplicate(true)
+					var outer_cnt := int(round(float(effect.get("buff_count", 1))))
+					if outer_cnt <= 0:
+						outer_cnt = 1
+					var inner_cnt := int(round(float(bd.get("buff_count", 1))))
+					bd["buff_count"] = maxi(1, inner_cnt) * maxi(1, outer_cnt)
+					_append_buff_for_card_target(card, bd)
 			_:
 				pass

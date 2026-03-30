@@ -25,6 +25,19 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.06, 0.07, 0.1, 0.97)
 
+[node name="BattleLogButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 20.0
+offset_top = 52.0
+offset_right = 168.0
+offset_bottom = 92.0
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+text = "战斗日志"
+
 [node name="TurnPhasePanel" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 4
@@ -215,6 +228,24 @@ grow_vertical = 2
 mouse_filter = 2
 z_index = 8
 
+[node name="DeckRemainLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -120.0
+offset_right = -24.0
+offset_bottom = -88.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.88, 0.9, 0.96, 1)
+text = "牌库剩余：0"
+horizontal_alignment = 2
+
 [node name="EndTurnButton" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 3
@@ -266,6 +297,77 @@ size_flags_horizontal = 8
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 autowrap_mode = 2
+
+[node name="BattleLogLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+z_index = 16
+
+[node name="BattleLogDim" type="ColorRect" parent="BattleLogLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.04, 0.05, 0.08, 0.55)
+
+[node name="BattleLogPanel" type="PanelContainer" parent="BattleLogLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -268.0
+offset_top = -228.0
+offset_right = 268.0
+offset_bottom = 228.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BattleLogVBox" type="VBoxContainer" parent="BattleLogLayer/BattleLogPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BattleLogTitleRow" type="HBoxContainer" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BattleLogTitle" type="Label" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "战斗日志"
+
+[node name="BattleLogClose" type="Button" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+text = "关闭"
+
+[node name="BattleLogScroll" type="ScrollContainer" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox"]
+custom_minimum_size = Vector2(0, 340)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BattleLogText" type="TextEdit" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogScroll"]
+custom_minimum_size = Vector2(500, 360)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 15
+editable = false
+wrap_mode = 1
+context_menu_enabled = false
+shortcut_keys_enabled = false
 
 [node name="DragLayer" type="Control" parent="."]
 layout_mode = 1

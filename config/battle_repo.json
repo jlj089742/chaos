@@ -5,7 +5,7 @@
 			"health": 45,
 			"img": "res://resource/battle/battle01.png",
 			"card_id_list":[
-				"1","2","3"
+				"1001","1002","1003"
 			]
 
 		}
@@ -16,7 +16,7 @@
 			"health": 50,
 			"img": "res://resource/battle/battle01.png",
 			"card_id_list":[
-				"1","2","3"
+				"1001","1002","1003"
 			]
 
 		}
@@ -27,73 +27,84 @@
 			"health": 55,
 			"img": "res://resource/battle/battle01.png",
 			"card_id_list":[
-				"1","2","3"
+				"1001","1002","1003"
 			]
 
 		}
 	],
 	"4": [
 		{
-			"battle_target_name":"野鬼",
+			"battle_target_name":"牛头",
 			"health": 60,
-			"img": "res://resource/battle/battle01.png",
+			"img": "res://resource/battle/battle02.png",
 			"card_id_list":[
-				"1","2","3"
+				"1004","1005","1006"
 			]
 
 		}
 	],
 	"5": [
 		{
-			"battle_target_name":"野鬼",
+			"battle_target_name":"牛头",
 			"health": 70,
-			"img": "res://resource/battle/battle01.png",
+			"img": "res://resource/battle/battle02.png",
 			"card_id_list":[
-				"1","2","3"
+				"1004","1005","1006"
 			]
 
 		}
 	],
 	"6": [
 		{
-			"battle_target_name":"野鬼",
+			"battle_target_name":"牛头",
 			"health": 80,
-			"img": "res://resource/battle/battle01.png",
+			"img": "res://resource/battle/battle02.png",
 			"card_id_list":[
-				"1","2","3"
+				"1004","1005","1006"
 			]
 
 		}
 	],
 	"7": [
 		{
-			"battle_target_name":"野鬼",
+			"battle_target_name":"牛头",
 			"health": 90,
-			"img": "res://resource/battle/battle01.png",
+			"img": "res://resource/battle/battle02.png",
 			"card_id_list":[
-				"1","2","3"
+				"1004","1005","1006"
 			]
 
 		}
 	],
 	"8": [
 		{
-			"battle_target_name":"野鬼",
+			"battle_target_name":"牛头",
 			"health": 100,
-			"img": "res://resource/battle/battle01.png",
+			"img": "res://resource/battle/battle02.png",
 			"card_id_list":[
-				"1","2","3"
+				"1004","1005","1006"
 			]
 
 		}
 	],
 	"9": [
 		{
-			"battle_target_name":"野鬼",
+			"battle_target_name":"牛头",
 			"health": 120,
-			"img": "res://resource/battle/battle01.png",
+			"img": "res://resource/battle/battle02.png",
 			"card_id_list":[
-				"1","2","3"
+				"1004","1005","1006"
+			]
+
+		}
+	],
+	"boss": [
+		{
+			"battle_target_name":"鬼将",
+			"health": 300,
+			"img": "res://resource/battle/battleboss01.png",
+			"card_id_list":[
+				"1006","1007","1008","1009","1010","1011","1012"
 			]
 
 		}
