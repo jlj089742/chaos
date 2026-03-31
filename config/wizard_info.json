@@ -9,6 +9,7 @@
 			"effect": {
 				"damage": 8
 			},
+			"reward":0,
 			"target": 1
 		},
 		{
@@ -20,6 +21,7 @@
 			"effect": {
 				"shield": 6
 			},
+			"reward":0,
 			"target": 0
 		},
 		{
@@ -31,6 +33,7 @@
 			"effect": {
 				"damage": 15
 			},
+			"reward":0,
 			"target": 1
 		},
 		{
@@ -42,6 +45,7 @@
 			"effect": {
 				"mp": 20
 			},
+			"reward":1,
 			"target": 0
 		},
 		{
@@ -58,6 +62,7 @@
 					"double_damage":1
 				}
 			},
+			"reward":1,
 			"target": 0
 		},
 		{
@@ -69,6 +74,7 @@
 			"effect": {
 				"damage": 30
 			},
+			"reward":1,
 			"target": 1
 		},
 		{
@@ -80,6 +86,7 @@
 			"effect": {
 				"deaw": 2
 			},
+			"reward":1,
 			"target": 0
 		},
 		{
@@ -96,6 +103,48 @@
 					"damage":10
 				}
 			},
+			"reward":1,
+			"target": 0
+		},
+		{
+			"card_id": 9,
+			"card_name": "归元",
+			"desc":"每回合结束，恢复8点法力",
+			"mp_cost": 0,
+			"action_cost": 3,
+			"effect": {
+				"buff": {
+					"buff_name":"归元",
+					"buff_desc":"每回合结束，恢复8点法力",
+					"buff_type":"turn_finish",
+					"mp":8
+				}
+			},
+			"reward":1,
+			"target": 0
+		},
+		{
+			"card_id": 10,
+			"card_name": "混元盾",
+			"desc":"增加18点护盾",
+			"mp_cost": 6,
+			"action_cost": 0,
+			"effect": {
+				"shield": 18
+			},
+			"reward":1,
+			"target": 0
+		},
+		{
+			"card_id": 11,
+			"card_name": "不动明王",
+			"desc":"增加24点护盾",
+			"mp_cost": 0,
+			"action_cost": 3,
+			"effect": {
+				"shield": 24
+			},
+			"reward":1,
 			"target": 0
 		}
 	]

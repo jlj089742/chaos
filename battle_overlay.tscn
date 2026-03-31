@@ -1,9 +1,10 @@
 [gd_scene format=3 uid="uid://cbgb3enopisv1"]
 
-[ext_resource type="Script" path="res://scripts/battle_overlay.gd" id="1_battle"]
+[ext_resource type="Script" uid="uid://qhpn24fpx4g3" path="res://scripts/battle_overlay.gd" id="1_battle"]
 
-[node name="BattleOverlay" type="Control"]
+[node name="BattleOverlay" type="Control" unique_id=1647320811]
 visible = false
+z_index = 4
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,11 +12,9 @@ anchor_bottom = 1.0
 offset_top = 52.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
-z_index = 4
 script = ExtResource("1_battle")
 
-[node name="Bg" type="ColorRect" parent="."]
+[node name="Bg" type="ColorRect" parent="." unique_id=1501981266]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,7 +24,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.06, 0.07, 0.1, 0.97)
 
-[node name="BattleLogButton" type="Button" parent="."]
+[node name="BattleLogButton" type="Button" parent="." unique_id=1043905343]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
@@ -38,7 +37,7 @@ grow_vertical = 2
 theme_override_font_sizes/font_size = 16
 text = "战斗日志"
 
-[node name="TurnPhasePanel" type="PanelContainer" parent="."]
+[node name="TurnPhasePanel" type="PanelContainer" parent="." unique_id=1188980766]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
@@ -49,14 +48,14 @@ offset_right = 168.0
 offset_bottom = 36.0
 grow_vertical = 2
 
-[node name="TurnPhaseLabel" type="Label" parent="TurnPhasePanel"]
+[node name="TurnPhaseLabel" type="Label" parent="TurnPhasePanel" unique_id=364482849]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "玩家回合"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MonsterRow" type="HBoxContainer" parent="."]
+[node name="MonsterRow" type="HBoxContainer" parent="." unique_id=671244156]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -69,40 +68,40 @@ grow_horizontal = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="EnemyAvatarColumn" type="VBoxContainer" parent="MonsterRow"]
+[node name="EnemyAvatarColumn" type="VBoxContainer" parent="MonsterRow" unique_id=379313828]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="EnemyTexture" type="TextureRect" parent="MonsterRow/EnemyAvatarColumn"]
+[node name="EnemyTexture" type="TextureRect" parent="MonsterRow/EnemyAvatarColumn" unique_id=1072871594]
 custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EnemyBuffRow" type="HBoxContainer" parent="MonsterRow/EnemyAvatarColumn"]
+[node name="EnemyBuffRow" type="HBoxContainer" parent="MonsterRow/EnemyAvatarColumn" unique_id=2110424887]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="EnemyInfo" type="VBoxContainer" parent="MonsterRow"]
+[node name="EnemyInfo" type="VBoxContainer" parent="MonsterRow" unique_id=259297655]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="EnemyNameLabel" type="Label" parent="MonsterRow/EnemyInfo"]
+[node name="EnemyNameLabel" type="Label" parent="MonsterRow/EnemyInfo" unique_id=1271749403]
 layout_mode = 2
-text = "敌人"
 theme_override_font_sizes/font_size = 22
+text = "敌人"
 
-[node name="EnemyHealthLabel" type="Label" parent="MonsterRow/EnemyInfo"]
+[node name="EnemyHealthLabel" type="Label" parent="MonsterRow/EnemyInfo" unique_id=371057665]
 layout_mode = 2
 text = "生命: 0"
 
-[node name="EnemyShieldLabel" type="Label" parent="MonsterRow/EnemyInfo"]
+[node name="EnemyShieldLabel" type="Label" parent="MonsterRow/EnemyInfo" unique_id=799605567]
 layout_mode = 2
 text = "护盾 0"
 
-[node name="PlayZone" type="Panel" parent="."]
+[node name="PlayZone" type="Panel" parent="." unique_id=1179467001]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -117,7 +116,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="PlayZoneHint" type="Label" parent="PlayZone"]
+[node name="PlayZoneHint" type="Label" parent="PlayZone" unique_id=1801894923]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -134,12 +133,10 @@ theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 0.75)
 text = "将卡牌拖入此区域后点击以使用"
 horizontal_alignment = 1
 
-[node name="PlayerRow" type="HBoxContainer" parent="."]
+[node name="PlayerRow" type="HBoxContainer" parent="." unique_id=1645511213]
 layout_mode = 1
 anchors_preset = 2
-anchor_left = 0.0
 anchor_top = 1.0
-anchor_right = 0.0
 anchor_bottom = 1.0
 offset_left = 28.0
 offset_top = -168.0
@@ -147,62 +144,61 @@ offset_right = 520.0
 offset_bottom = -28.0
 grow_horizontal = 0
 grow_vertical = 0
-alignment = 0
 theme_override_constants/separation = 12
 
-[node name="PlayerAvatarColumn" type="VBoxContainer" parent="PlayerRow"]
+[node name="PlayerAvatarColumn" type="VBoxContainer" parent="PlayerRow" unique_id=1299566435]
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="PlayerTipBubble" type="PanelContainer" parent="PlayerRow/PlayerAvatarColumn"]
+[node name="PlayerTipBubble" type="PanelContainer" parent="PlayerRow/PlayerAvatarColumn" unique_id=341876152]
 visible = false
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="PlayerTipLabel" type="Label" parent="PlayerRow/PlayerAvatarColumn/PlayerTipBubble"]
+[node name="PlayerTipLabel" type="Label" parent="PlayerRow/PlayerAvatarColumn/PlayerTipBubble" unique_id=1874524602]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 horizontal_alignment = 1
 
-[node name="PlayerTexture" type="TextureRect" parent="PlayerRow/PlayerAvatarColumn"]
+[node name="PlayerTexture" type="TextureRect" parent="PlayerRow/PlayerAvatarColumn" unique_id=332470296]
 custom_minimum_size = Vector2(88, 88)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="PlayerBuffRow" type="HBoxContainer" parent="PlayerRow/PlayerAvatarColumn"]
+[node name="PlayerBuffRow" type="HBoxContainer" parent="PlayerRow/PlayerAvatarColumn" unique_id=1905648696]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="PlayerInfo" type="VBoxContainer" parent="PlayerRow"]
+[node name="PlayerInfo" type="VBoxContainer" parent="PlayerRow" unique_id=866503968]
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_constants/separation = 4
 
-[node name="PlayerHealthLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+[node name="PlayerHealthLabel" type="Label" parent="PlayerRow/PlayerInfo" unique_id=1385105674]
 layout_mode = 2
+theme_override_font_sizes/font_size = 18
 text = "生命 50/50"
-theme_override_font_sizes/font_size = 18
 
-[node name="PlayerShieldLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+[node name="PlayerShieldLabel" type="Label" parent="PlayerRow/PlayerInfo" unique_id=1550434181]
 layout_mode = 2
+theme_override_font_sizes/font_size = 18
 text = "护盾 0"
-theme_override_font_sizes/font_size = 18
 
-[node name="PlayerManaLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+[node name="PlayerManaLabel" type="Label" parent="PlayerRow/PlayerInfo" unique_id=1384468929]
 layout_mode = 2
+theme_override_font_sizes/font_size = 18
 text = "法力 24/24"
-theme_override_font_sizes/font_size = 18
 
-[node name="PlayerActionLabel" type="Label" parent="PlayerRow/PlayerInfo"]
+[node name="PlayerActionLabel" type="Label" parent="PlayerRow/PlayerInfo" unique_id=299944175]
 layout_mode = 2
-text = "行动力 3"
 theme_override_font_sizes/font_size = 18
+text = "行动力 3"
 
-[node name="HandContainer" type="HBoxContainer" parent="."]
+[node name="HandContainer" type="HBoxContainer" parent="." unique_id=511447016]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -218,7 +214,8 @@ grow_vertical = 0
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="DrawAnimLayer" type="Control" parent="."]
+[node name="DrawAnimLayer" type="Control" parent="." unique_id=648993419]
+z_index = 8
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -226,9 +223,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-z_index = 8
 
-[node name="DeckRemainLabel" type="Label" parent="."]
+[node name="DeckRemainLabel" type="Label" parent="." unique_id=1878005228]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -241,12 +237,12 @@ offset_right = -24.0
 offset_bottom = -88.0
 grow_horizontal = 0
 grow_vertical = 2
-theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.88, 0.9, 0.96, 1)
+theme_override_font_sizes/font_size = 18
 text = "牌库剩余：0"
 horizontal_alignment = 2
 
-[node name="EndTurnButton" type="Button" parent="."]
+[node name="EndTurnButton" type="Button" parent="." unique_id=2088954448]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -261,14 +257,12 @@ grow_horizontal = 0
 grow_vertical = 0
 text = "结束回合"
 
-[node name="BattleHelpRoot" type="VBoxContainer" parent="."]
+[node name="BattleHelpRoot" type="VBoxContainer" parent="." unique_id=1597550816]
 z_index = 9
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
-anchor_top = 0.0
 anchor_right = 1.0
-anchor_bottom = 0.0
 offset_left = -300.0
 offset_top = 12.0
 offset_right = -16.0
@@ -276,9 +270,8 @@ offset_bottom = 280.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_constants/separation = 8
-alignment = 0
 
-[node name="HelpHintButton" type="Button" parent="BattleHelpRoot"]
+[node name="HelpHintButton" type="Button" parent="BattleHelpRoot" unique_id=1035804104]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -287,39 +280,37 @@ theme_override_font_sizes/font_size = 20
 text = "？"
 flat = true
 
-[node name="HelpHintBubble" type="PanelContainer" parent="BattleHelpRoot"]
+[node name="HelpHintBubble" type="PanelContainer" parent="BattleHelpRoot" unique_id=900523155]
 visible = false
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 size_flags_horizontal = 8
 
-[node name="HelpHintLabel" type="Label" parent="BattleHelpRoot/HelpHintBubble"]
+[node name="HelpHintLabel" type="Label" parent="BattleHelpRoot/HelpHintBubble" unique_id=1545000480]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 autowrap_mode = 2
 
-[node name="BattleLogLayer" type="Control" parent="."]
+[node name="BattleLogLayer" type="Control" parent="." unique_id=1811949349]
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 0
 z_index = 16
-
-[node name="BattleLogDim" type="ColorRect" parent="BattleLogLayer"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
+
+[node name="BattleLogDim" type="ColorRect" parent="BattleLogLayer" unique_id=1657301648]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.04, 0.05, 0.08, 0.55)
 
-[node name="BattleLogPanel" type="PanelContainer" parent="BattleLogLayer"]
+[node name="BattleLogPanel" type="PanelContainer" parent="BattleLogLayer" unique_id=564430530]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -333,43 +324,44 @@ offset_bottom = 228.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="BattleLogVBox" type="VBoxContainer" parent="BattleLogLayer/BattleLogPanel"]
+[node name="BattleLogVBox" type="VBoxContainer" parent="BattleLogLayer/BattleLogPanel" unique_id=1900059128]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="BattleLogTitleRow" type="HBoxContainer" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox"]
+[node name="BattleLogTitleRow" type="HBoxContainer" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox" unique_id=227537923]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="BattleLogTitle" type="Label" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow"]
+[node name="BattleLogTitle" type="Label" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow" unique_id=212162842]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
 text = "战斗日志"
 
-[node name="BattleLogClose" type="Button" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow"]
+[node name="BattleLogClose" type="Button" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow" unique_id=573820226]
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 text = "关闭"
 
-[node name="BattleLogScroll" type="ScrollContainer" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox"]
+[node name="BattleLogScroll" type="ScrollContainer" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox" unique_id=1914501377]
 custom_minimum_size = Vector2(0, 340)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="BattleLogText" type="TextEdit" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogScroll"]
+[node name="BattleLogText" type="TextEdit" parent="BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogScroll" unique_id=1447347158]
 custom_minimum_size = Vector2(500, 360)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 15
 editable = false
-wrap_mode = 1
 context_menu_enabled = false
 shortcut_keys_enabled = false
+wrap_mode = 1
 
-[node name="DragLayer" type="Control" parent="."]
+[node name="DragLayer" type="Control" parent="." unique_id=887840539]
+z_index = 12
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -377,4 +369,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-z_index = 12

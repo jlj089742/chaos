@@ -12,8 +12,8 @@ const DEFAULT_SAVE := {
 	"deck_initialized": false,
 	"max_health": 50,
 	"health": 50,
-	"max_mana": 24,
-	"mana": 24,
+	"max_mana": 36,
+	"mana": 36,
 	"max_action": 3,
 	"action": 3,
 	"interaction_spots": []
@@ -85,8 +85,8 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 			out["deck_initialized"] = true
 			out["max_health"] = 50
 			out["health"] = 50
-			out["max_mana"] = 24
-			out["mana"] = 24
+			out["max_mana"] = 36
+			out["mana"] = 36
 			out["max_action"] = 3
 			out["action"] = 3
 		_:
@@ -95,8 +95,8 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 			# Keep default Wizard stats for now.
 			out["max_health"] = 50
 			out["health"] = 50
-			out["max_mana"] = 24
-			out["mana"] = 24
+			out["max_mana"] = 36
+			out["mana"] = 36
 			out["max_action"] = 3
 			out["action"] = 3
 	return out

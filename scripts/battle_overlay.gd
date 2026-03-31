@@ -10,7 +10,7 @@ const _DRAW_SHOWCASE_HOLD_SEC := 0.18
 const _DRAW_TO_HAND_SEC := 0.3
 const _DRAW_OFFSCREEN_PAD := 64.0
 const _STAT_TWEEN_SEC := 0.5
-const _MONSTER_CARD_SHOWCASE_HOLD_SEC := 0.45
+const _MONSTER_CARD_SHOWCASE_HOLD_SEC := 2
 const _MONSTER_CARDS_PER_TURN := 2
 
 ## 统一伤害结算：伤害来源（谁造成本次结算的基础伤害）
@@ -59,6 +59,7 @@ const BATTLE_HELP_HINT_TEXT := "战斗说明：\n卡牌左上角为法力值消�
 @onready var _battle_log_layer: Control = $BattleLogLayer
 @onready var _battle_log_dim: ColorRect = $BattleLogLayer/BattleLogDim
 @onready var _battle_log_close: Button = $BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogTitleRow/BattleLogClose
+@onready var _battle_log_scroll: ScrollContainer = $BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogScroll
 @onready var _battle_log_text: TextEdit = $BattleLogLayer/BattleLogPanel/BattleLogVBox/BattleLogScroll/BattleLogText
 
 var _game_main: Node = null
@@ -123,6 +124,20 @@ func _sync_battle_log_textedit() -> void:
 	_battle_log_text.text = "\n".join(_battle_log_lines)
 
 
+func _scroll_battle_log_to_bottom_next_frames() -> void:
+	# 等布局与 TextEdit 换行高度计算完成，scrollbar 的 max_value 才正确
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if is_instance_valid(_battle_log_text):
+		var te_bar := _battle_log_text.get_v_scroll_bar()
+		if te_bar != null:
+			te_bar.value = te_bar.max_value
+	if is_instance_valid(_battle_log_scroll):
+		var vbar := _battle_log_scroll.get_v_scroll_bar()
+		if vbar != null:
+			vbar.value = vbar.max_value
+
+
 func _refresh_deck_remain_label() -> void:
 	if _deck_remain_label != null:
 		_deck_remain_label.text = "牌库剩余：%d" % _draw_pile.size()
@@ -132,6 +147,7 @@ func _on_battle_log_button_pressed() -> void:
 	_hide_help_hint_bubble()
 	_battle_log_layer.visible = true
 	_sync_battle_log_textedit()
+	_scroll_battle_log_to_bottom_next_frames()
 
 
 func _on_battle_log_close_pressed() -> void:
@@ -275,6 +291,8 @@ func start_battle(use_boss: bool = false) -> void:
 	_battle_print("对战开始!")
 	if _game_main == null:
 		return
+	if _game_main.has_method("set_world_map_help_visible"):
+		_game_main.set_world_map_help_visible(false)
 	visible = true
 	_game_data = _game_main.game_data
 	# 进入战斗：生命沿用顶栏/存档当前值；法力与行动力回满（行动力每回合开始在 _begin_player_turn 再次回满）。
@@ -304,7 +322,7 @@ func start_battle(use_boss: bool = false) -> void:
 		_hand.remove_child(c)
 		c.free()
 
-	await _draw_cards(3)
+	# 先刷新头像与属性，再开始抽卡演出，避免进入战斗后长时间只看到空白信息区
 	_sync_player_portrait()
 	_refresh_monster_ui()
 	_refresh_player_labels()
@@ -312,6 +330,10 @@ func start_battle(use_boss: bool = false) -> void:
 	_update_turn_indicator()
 	if _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	await _draw_cards(3)
 	set_process(false)
 	_refresh_deck_remain_label()
 	_battle_print("对战初始化完毕")
@@ -344,6 +366,8 @@ func end_battle() -> void:
 	_use_boss_battle = false
 	if _game_main != null and _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
+	if _game_main != null and _game_main.has_method("set_world_map_help_visible"):
+		_game_main.set_world_map_help_visible(true)
 
 
 func _build_card_map() -> void:
@@ -494,7 +518,7 @@ func _draw_cards(n: int) -> void:
 		var cid := int(_draw_pile.pop_back())
 		await _animate_draw_card_to_hand(cid)
 		_refresh_deck_remain_label()
-		_battle_print("抽到卡牌" + str(cid))
+		
 	_refresh_deck_remain_label()
 
 
@@ -692,7 +716,7 @@ func _on_end_turn_pressed() -> void:
 	if _dragging_button != null:
 		_cancel_drag()
 	##回合结束buff触发方法
-	_trigger_buffs_at_player_turn_end()
+	await _trigger_buffs_at_player_turn_end()
 	if _monster_hp > 0:
 		_player_turn = false
 		_update_turn_indicator()
@@ -725,7 +749,7 @@ func _trigger_buffs_at_player_turn_end() -> void:
 			##处理文案展示
 			var buff_show_name="触发："+(b as Dictionary).get("buff_name");
 			_show_player_tip(buff_show_name)
-			_trigger_buff_effect(b as Dictionary, true)
+			await _trigger_buff_effect(b as Dictionary, true)
 	_refresh_buff_ui()
 
 
@@ -743,18 +767,32 @@ func _trigger_buff_effect(buff: Dictionary, owner_is_player: bool) -> void:
 	var snap := _battle_stat_snapshot_before_pay()
 	match bt:
 		"turn_finish":
-			var base := int(round(float(buff.get("damage", 0))))
-			if base <= 0:
-				return
+			var base_dmg := int(round(float(buff.get("damage", 0))))
+			var mp_each := int(round(float(buff.get("mp", 0))))
 			## 每层单独结算一次基础伤害，便于未来「每次造成伤害」类连锁；勿合并为 base * buff_count。
 			var n := maxi(1, int(buff.get("buff_count", 1)))
-			for _i in n:
-				if owner_is_player:
-					_battle_print("触发buff效果："+buff.get("buff_name"))
-					_apply_battle_damage(base, DAMAGE_SOURCE_PLAYER_BUFF, DAMAGE_TARGET_ENEMY)
-				else:
-					_battle_print("触发buff效果："+buff.get("buff_name"))
-					_apply_battle_damage(base, DAMAGE_SOURCE_ENEMY_BUFF, DAMAGE_TARGET_PLAYER)
+			var did := false
+			if base_dmg > 0:
+				did = true
+				for _i in n:
+					if owner_is_player:
+						_battle_print("触发buff效果：" + str(buff.get("buff_name")))
+						_apply_battle_damage(base_dmg, DAMAGE_SOURCE_PLAYER_BUFF, DAMAGE_TARGET_ENEMY)
+					else:
+						_battle_print("触发buff效果：" + str(buff.get("buff_name")))
+						_apply_battle_damage(base_dmg, DAMAGE_SOURCE_ENEMY_BUFF, DAMAGE_TARGET_PLAYER)
+			## 归元：玩家回合结束时按层数恢复法力（每层 mp 点，合计后一次封顶 max_mana）。
+			if mp_each > 0 and owner_is_player:
+				did = true
+				var add_total := mp_each * n
+				var cur_mp := int(_game_data.get("mana", 0))
+				var mx_mp := int(_game_data.get("max_mana", 0))
+				_game_data["mana"] = clampi(cur_mp + add_total, 0, mx_mp)
+				_battle_print("触发buff效果：" + str(buff.get("buff_name")) + "，法力恢复%d点" % add_total)
+				if _game_main != null and _game_main.has_method("_clamp_primary_resources"):
+					_game_main._clamp_primary_resources()
+			if not did:
+				return
 		_:
 			pass
 	await _tween_battle_stat_labels_if_changed(snap, _STAT_TWEEN_SEC)

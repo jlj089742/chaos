@@ -61,9 +61,16 @@ const _COST_BOX_B := (_COST_CIRCLE_CY + _COST_CIRCLE_R) / _CARD_REF_H
 @onready var loot_pick_cards_hbox: HBoxContainer = $UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox/LootPickCardsHBox
 @onready var loot_pick_abandon_button: Button = $UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox/LootPickBottom/LootPickAbandonButton
 @onready var loot_pick_hint: Label = $UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox/LootPickHint
+@onready var map_help_root: Control = $UI/MapHelpRoot
+@onready var map_help_button: Button = $UI/MapHelpRoot/MapHelpButton
+@onready var map_help_bubble: PanelContainer = $UI/MapHelpRoot/MapHelpBubble
+@onready var map_help_label: Label = $UI/MapHelpRoot/MapHelpBubble/MapHelpLabel
 
 const START_DIALOG_PROMPT := "来了吗？"
 const START_DIALOG_AFTER_CHOICE := "如你所愿。"
+
+## 大地图界面右上角「？」气泡说明全文。多行可直接在本字符串中换行；需展示时再填写即可。
+const MAP_HELP_HINT_TEXT := "地图说明：\n点击地图上的圆圈即可游览对应事件，以下为事件类型说明：\nH：出生点，获取初始物资加成。\nB：战斗，战胜怪物获取战利品。\n？：随机事件。\nX：宝箱，获取增益效果。\nR：休息处，可以恢复血量或交易。\nS：Boss战斗。"
 
 var game_data: Dictionary = {}
 var year_events_config: Dictionary = {}
@@ -99,6 +106,7 @@ func _ready() -> void:
 	_restore_or_spawn_interaction_spots()
 	_setup_modal_deck_layer()
 	_bind_ui_events()
+	_setup_map_help_ui()
 	settings_popup.visible = false
 	interaction_popup.visible = false
 	start_interaction_popup.visible = false
@@ -114,6 +122,15 @@ func _ready() -> void:
 
 func refresh_top_bar() -> void:
 	_update_top_bar()
+
+
+## 由战斗层调用：仅在大地图上显示地图「？」帮助，进入战斗时关闭以免与战斗内帮助重叠。
+func set_world_map_help_visible(show: bool) -> void:
+	if map_help_root == null:
+		return
+	map_help_root.visible = show
+	if not show:
+		_hide_map_help_bubble()
 
 
 func create_card_for_ui(card: Dictionary, scale: float = CARD_SCALE) -> Control:
@@ -158,6 +175,56 @@ func _bind_ui_events() -> void:
 	deck_overlay_close_button.pressed.connect(_on_deck_overlay_close_pressed)
 	loot_continue_button.pressed.connect(_on_loot_continue_pressed)
 	loot_pick_abandon_button.pressed.connect(_on_loot_pick_abandon)
+	map_help_button.pressed.connect(_on_map_help_button_pressed)
+
+
+func _setup_map_help_ui() -> void:
+	if map_help_bubble != null:
+		var bubble_sb := StyleBoxFlat.new()
+		bubble_sb.bg_color = Color(0.12, 0.13, 0.2, 0.96)
+		bubble_sb.set_corner_radius_all(10)
+		bubble_sb.content_margin_left = 12
+		bubble_sb.content_margin_right = 12
+		bubble_sb.content_margin_top = 10
+		bubble_sb.content_margin_bottom = 10
+		bubble_sb.set_border_width_all(1)
+		bubble_sb.border_color = Color(0.35, 0.38, 0.48, 0.9)
+		map_help_bubble.add_theme_stylebox_override("panel", bubble_sb)
+	if map_help_label != null:
+		map_help_label.text = MAP_HELP_HINT_TEXT
+	var r := 20.0
+	var btn_normal := StyleBoxFlat.new()
+	btn_normal.bg_color = Color(0.22, 0.24, 0.32, 0.92)
+	btn_normal.set_corner_radius_all(int(r))
+	btn_normal.set_border_width_all(1)
+	btn_normal.border_color = Color(0.45, 0.48, 0.58, 0.85)
+	map_help_button.add_theme_stylebox_override("normal", btn_normal)
+	var btn_hover := btn_normal.duplicate() as StyleBoxFlat
+	btn_hover.bg_color = Color(0.28, 0.3, 0.4, 0.95)
+	map_help_button.add_theme_stylebox_override("hover", btn_hover)
+	var btn_pressed := btn_normal.duplicate() as StyleBoxFlat
+	btn_pressed.bg_color = Color(0.18, 0.2, 0.28, 0.98)
+	map_help_button.add_theme_stylebox_override("pressed", btn_pressed)
+	map_help_button.add_theme_color_override("font_color", Color(0.92, 0.93, 0.96))
+	map_help_button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	map_help_button.add_theme_color_override("font_pressed_color", Color(0.85, 0.86, 0.9))
+
+
+func _on_map_help_button_pressed() -> void:
+	if map_help_bubble == null:
+		return
+	if map_help_bubble.visible:
+		map_help_bubble.visible = false
+	else:
+		if map_help_label != null:
+			map_help_label.text = MAP_HELP_HINT_TEXT
+		map_help_bubble.visible = true
+
+
+func _hide_map_help_bubble() -> void:
+	if map_help_bubble != null:
+		map_help_bubble.visible = false
+
 
 func _seed_deck_for_role(role: String) -> Array:
 	# 言灵初始牌库：5张id1，5张id2，3张id3，2张id4（允许重复卡）
@@ -380,10 +447,11 @@ func _update_top_bar() -> void:
 	year_value_label.text = str(int(game_data.get("year", 1)))
 	gold_value_label.text = str(int(game_data.get("gold", 200)))
 	health_value_label.text = "%d/%d" % [int(game_data.get("health", 50)), int(game_data.get("max_health", 50))]
-	mana_value_label.text = "%d/%d" % [int(game_data.get("mana", 24)), int(game_data.get("max_mana", 24))]
+	mana_value_label.text = "%d/%d" % [int(game_data.get("mana", 36)), int(game_data.get("max_mana", 36))]
 	action_value_label.text = str(int(game_data.get("action", 3)))
 
 func _on_settings_button_pressed() -> void:
+	_hide_map_help_bubble()
 	settings_popup.visible = true
 
 func _on_close_settings_pressed() -> void:
@@ -605,7 +673,8 @@ func _on_start_option_chosen(entry: Dictionary) -> void:
 	var changes: Variant = entry.get("change", [])
 	if changes is Array:
 		_apply_attr_changes(changes)
-	_update_top_bar()
+	if await _after_player_resource_mutation_maybe_die():
+		return
 	start_bubble_label.text = START_DIALOG_AFTER_CHOICE
 	_show_start_continue_only_ui()
 
@@ -677,7 +746,8 @@ func _show_event_interaction_popup() -> void:
 
 func _on_event_option_chosen(option: Dictionary) -> void:
 	_apply_effect_map(option.get("effect", {}))
-	_update_top_bar()
+	if await _after_player_resource_mutation_maybe_die():
+		return
 	var after_text := str(option.get("after", ""))
 	if after_text.is_empty():
 		after_text = "你选择了：%s" % str(option.get("desc", ""))
@@ -716,7 +786,8 @@ func _on_box_open_pressed() -> void:
 	var changes: Variant = entry.get("change", [])
 	if changes is Array:
 		_apply_attr_changes(changes)
-	_update_top_bar()
+	if await _after_player_resource_mutation_maybe_die():
+		return
 	start_bubble_label.text = str(entry.get("context", "宝箱里有些收获。"))
 	_show_start_continue_only_ui()
 
@@ -748,7 +819,8 @@ func _on_rest_heal_pressed() -> void:
 	var cur_hp := int(game_data.get("health", 0))
 	var add_hp := maxi(0, int(floor(float(max_hp) * 0.5)))
 	game_data["health"] = mini(max_hp, cur_hp + add_hp)
-	_update_top_bar()
+	if await _after_player_resource_mutation_maybe_die():
+		return
 	start_bubble_label.text = "宝珠的光辉修复了你的伤势。"
 	_show_start_continue_only_ui()
 
@@ -898,7 +970,8 @@ func _on_shop_item_pressed(idx: int) -> void:
 		return
 
 	game_data["gold"] = gold - price
-	_update_top_bar()
+	if await _after_player_resource_mutation_maybe_die():
+		return
 	_shop_sold_indices[idx] = true
 	shop_hint_label.text = "%s 已购买" % str(item.get("shop_name", "商品"))
 	_rebuild_shop_items()
@@ -945,6 +1018,16 @@ func _clamp_primary_resources() -> void:
 	game_data["health"] = clampi(int(game_data.get("health", 0)), 0, max_health)
 	game_data["mana"] = clampi(int(game_data.get("mana", 0)), 0, max_mana)
 	game_data["action"] = clampi(int(game_data.get("action", 0)), 0, max_action)
+
+
+## 在可能改动生命/生命上限等主资源后调用：钳制数值并刷新顶栏；若当前生命≤0 则立即播放死亡演出。返回 true 表示已进入致死流程，调用方应中止后续交互 UI。
+func _after_player_resource_mutation_maybe_die() -> bool:
+	_clamp_primary_resources()
+	_update_top_bar()
+	if int(game_data.get("health", 0)) <= 0:
+		await play_player_death_sequence()
+		return true
+	return false
 
 func _show_remove_overlay() -> void:
 	var deck_raw: Variant = game_data.get("player_deck", [])

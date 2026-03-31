@@ -98,6 +98,40 @@ text = "牌库"
 layout_mode = 2
 text = "设置"
 
+[node name="MapHelpRoot" type="VBoxContainer" parent="UI" unique_id=1751206707]
+z_index = 9
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -57.0
+offset_top = 61.0
+offset_right = -13.0
+offset_bottom = 101.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="MapHelpButton" type="Button" parent="UI/MapHelpRoot" unique_id=1318779188]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_horizontal = 8
+focus_mode = 0
+theme_override_font_sizes/font_size = 20
+text = "？"
+flat = true
+
+[node name="MapHelpBubble" type="PanelContainer" parent="UI/MapHelpRoot" unique_id=421246765]
+visible = false
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="MapHelpLabel" type="Label" parent="UI/MapHelpRoot/MapHelpBubble" unique_id=1571553834]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 2
+
 [node name="SettingsPopup" type="PanelContainer" parent="UI" unique_id=410726119]
 visible = false
 anchors_preset = 8
@@ -463,9 +497,9 @@ theme_override_constants/separation = 14
 
 [node name="LootTitle" type="Label" parent="UI/LootPopup/LootMargin/LootVBox" unique_id=183303]
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "战利品"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 22
 
 [node name="LootListVBox" type="VBoxContainer" parent="UI/LootPopup/LootMargin/LootVBox" unique_id=183304]
 layout_mode = 2
@@ -485,7 +519,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
 
 [node name="LootPickShade" type="ColorRect" parent="UI/LootCardPickOverlay" unique_id=183401]
 layout_mode = 1
@@ -525,9 +558,9 @@ horizontal_alignment = 1
 
 [node name="LootPickHint" type="Label" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox" unique_id=183407]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.78, 0.88, 1)
 text = "点击卡牌选取，或点击下方放弃"
 horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.75, 0.78, 0.88, 1)
 
 [node name="LootPickCardsHBox" type="HBoxContainer" parent="UI/LootCardPickOverlay/LootPickCenter/LootPickPanel/LootPickMargin/LootPickVBox" unique_id=183408]
 layout_mode = 2

@@ -3,37 +3,37 @@
 		{
 			"card_id": 1001,
 			"card_name": "利爪",
-			"desc":"造成6点伤害",
+			"desc":"造成4点伤害",
 			"mp_cost": 3,
 			"action_cost": 1,
 			"effect": {
-				"damage": 6
+				"damage": 4
 			},
 			"target": 1
 		},
 		{
 			"card_id": 1002,
 			"card_name": "鬼火",
-			"desc":"增加4点护盾",
+			"desc":"增加3点护盾",
 			"mp_cost": 2,
 			"action_cost": 0,
 			"effect": {
-				"shield": 4
+				"shield": 3
 			},
 			"target": 0
 		},
 		{
 			"card_id": 1003,
 			"card_name": "鬼影重重",
-			"desc":"每回合结束，造成2点伤害",
+			"desc":"每回合结束，造成1点伤害",
 			"mp_cost": 6,
 			"action_cost": 2,
 			"effect": {
 				"buff": {
 					"buff_name":"鬼影重重",
-					"buff_desc":"每回合结束，造成2点伤害",
+					"buff_desc":"每回合结束，造成1点伤害",
 					"buff_type":"turn_finish",
-					"damage":2
+					"damage":1
 				}
 			},
 			"target": 0
@@ -41,22 +41,22 @@
 		{
 			"card_id": 1004,
 			"card_name": "力劈",
-			"desc":"造成10点伤害",
+			"desc":"造成7点伤害",
 			"mp_cost": 3,
 			"action_cost": 1,
 			"effect": {
-				"damage": 10
+				"damage": 7
 			},
 			"target": 1
 		},
 		{
 			"card_id": 1005,
 			"card_name": "硬化",
-			"desc":"增加6点护盾",
+			"desc":"增加5点护盾",
 			"mp_cost": 2,
 			"action_cost": 0,
 			"effect": {
-				"shield": 6
+				"shield": 5
 			},
 			"target": 0
 		},

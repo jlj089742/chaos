@@ -1,112 +1,456 @@
 {
 	"1": [
 		{
-			"battle_target_name":"野鬼",
+			"battle_target_name": "野鬼",
 			"health": 45,
 			"img": "res://resource/battle/battle01.png",
-			"card_id_list":[
-				"1001","1002","1003"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 30
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1001",
+				"1002",
+                "1003"
 			]
-
 		}
 	],
 	"2": [
 		{
-			"battle_target_name":"野鬼",
-			"health": 50,
+			"battle_target_name": "野鬼",
+			"health": 45,
 			"img": "res://resource/battle/battle01.png",
-			"card_id_list":[
-				"1001","1002","1003"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 30
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1001",
+				"1002",
+                "1003"
 			]
-
 		}
 	],
 	"3": [
 		{
-			"battle_target_name":"野鬼",
-			"health": 55,
+			"battle_target_name": "野鬼",
+			"health": 50,
 			"img": "res://resource/battle/battle01.png",
-			"card_id_list":[
-				"1001","1002","1003"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 30
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1001",
+				"1002",
+                "1003"
 			]
-
 		}
 	],
 	"4": [
 		{
-			"battle_target_name":"牛头",
+			"battle_target_name": "牛头",
 			"health": 60,
 			"img": "res://resource/battle/battle02.png",
-			"card_id_list":[
-				"1004","1005","1006"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
 			]
-
 		}
 	],
 	"5": [
 		{
-			"battle_target_name":"牛头",
-			"health": 70,
+			"battle_target_name": "牛头",
+			"health": 60,
 			"img": "res://resource/battle/battle02.png",
-			"card_id_list":[
-				"1004","1005","1006"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
 			]
-
 		}
 	],
 	"6": [
 		{
-			"battle_target_name":"牛头",
-			"health": 80,
+			"battle_target_name": "牛头",
+			"health": 65,
 			"img": "res://resource/battle/battle02.png",
-			"card_id_list":[
-				"1004","1005","1006"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
 			]
-
 		}
 	],
 	"7": [
 		{
-			"battle_target_name":"牛头",
-			"health": 90,
+			"battle_target_name": "牛头",
+			"health": 65,
 			"img": "res://resource/battle/battle02.png",
-			"card_id_list":[
-				"1004","1005","1006"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
 			]
-
 		}
 	],
 	"8": [
 		{
-			"battle_target_name":"牛头",
-			"health": 100,
+			"battle_target_name": "牛头",
+			"health": 70,
 			"img": "res://resource/battle/battle02.png",
-			"card_id_list":[
-				"1004","1005","1006"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
 			]
-
 		}
 	],
 	"9": [
 		{
-			"battle_target_name":"牛头",
+			"battle_target_name": "牛头",
+			"health": 75,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"10": [
+		{
+			"battle_target_name": "牛头",
+			"health": 80,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"11": [
+		{
+			"battle_target_name": "牛头",
 			"health": 120,
 			"img": "res://resource/battle/battle02.png",
-			"card_id_list":[
-				"1004","1005","1006"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
 			]
-
+		}
+	],
+	"12": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"13": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"14": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"15": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"16": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"17": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"18": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
+		}
+	],
+	"19": [
+		{
+			"battle_target_name": "牛头",
+			"health": 120,
+			"img": "res://resource/battle/battle02.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 45
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1004",
+				"1005",
+                "1006"
+			]
 		}
 	],
 	"boss": [
 		{
-			"battle_target_name":"鬼将",
+			"battle_target_name": "鬼将",
 			"health": 300,
 			"img": "res://resource/battle/battleboss01.png",
-			"card_id_list":[
-				"1006","1007","1008","1009","1010","1011","1012"
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 200
+				},
+				{
+					"type": "card_common"
+				}
+			],
+			"card_id_list": [
+				"1006",
+				"1007",
+				"1008",
+				"1009",
+				"1010",
+				"1011",
+                "1012"
 			]
-
+		}
+	],
+	"event": [
+		{
+			"battle_target_name": "鬼将",
+			"health": 300,
+			"img": "res://resource/battle/battleboss01.png",
+			"reward_list": [
+				{
+					"type": "gold",
+					"gold": 500
+				},
+				{
+					"type": "card_special",
+					"choose_id": [
+						"1010",
+						"1011",
+                        "1012"
+					]
+				}
+			],
+			"card_id_list": [
+				"1006",
+				"1007",
+				"1008",
+				"1009",
+				"1010",
+				"1011",
+                "1012"
+			]
 		}
 	]
 }
