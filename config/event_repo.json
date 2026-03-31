@@ -1,6 +1,7 @@
 {
 	"common": {
 		"1": {
+			"type":"common",
 			"event": "藏宝窟",
 			"img": "res://resource/event/event1.png",
 			"desc": "眼前一亮，遍地的奇珍异宝",
@@ -24,6 +25,7 @@
 			]
 		},
 		"2": {
+			"type":"common",
 			"event": "密室",
 			"img": "res://resource/event/event2.png",
 			"desc": "奇怪的密室，有宝珠、石狮子和一柄剑",
@@ -55,6 +57,7 @@
 			]
 		},
 		"3": {
+			"type":"common",
 			"event": "上古封印",
 			"img": "res://resource/event/event3.png",
 			"desc": "一扇大门，门上有封印",
@@ -69,10 +72,19 @@
 				},
 				{
 					"desc": "摧毁封印",
-					"after":"你放出了上古邪神，他说要好好感谢你",
-					"effect": {
-						"gold": 150
-					}
+					"go_to":"SP01"
+				}
+			]
+		},
+		"SP01": {
+			"type":"special",
+			"event": "上古邪神",
+			"img": "res://resource/battle/battleevent01.png",
+			"desc": "你放出了上古邪神，它说要好好感谢你",
+			"choose": [
+				{
+					"desc": "感谢？",
+					"battle": "event01"
 				}
 			]
 		}

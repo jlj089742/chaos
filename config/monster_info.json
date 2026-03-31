@@ -149,6 +149,75 @@
 				"damage_count": 6
 			},
 			"target": 1
+		},
+		{
+			"card_id": 1013,
+			"card_name": "亵渎",
+			"desc":"造成3点伤害4次，抽1张牌",
+			"mp_cost": 0,
+			"action_cost": 0,
+			"effect": {
+				"damage": 3,
+				"damage_count": 4,
+				"draw": 1
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1014,
+			"card_name": "混沌",
+			"desc":"增加12点护盾，抽1张牌",
+			"mp_cost": 0,
+			"action_cost": 0,
+			"effect": {
+				"shield": 12,
+				"draw": 1
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1015,
+			"card_name": "因果",
+			"desc":"完全免疫下1次伤害",
+			"mp_cost": 0,
+			"action_cost": 0,
+			"effect": {
+				"buff": {
+					"buff_name":"因果",
+					"buff_desc":"完全免疫下1次伤害",
+					"buff_type":"damage",
+					"ineffective":1
+				}
+			},
+			"target": 0
+		},
+		{
+			"card_id": 1016,
+			"card_name": "邪念",
+			"desc":"造成4点伤害，消减12法力值",
+			"mp_cost": 0,
+			"action_cost": 0,
+			"effect": {
+				"damage": 4,
+				"mana":-12
+			},
+			"target": 1
+		},
+		{
+			"card_id": 1017,
+			"card_name": "癫狂",
+			"desc":"下回合开始时，造成15点伤害",
+			"mp_cost": 0,
+			"action_cost": 0,
+			"effect": {
+				"buff": {
+					"buff_name":"癫狂",
+					"buff_desc":"下回合开始时，造成15点伤害",
+					"buff_type":"next_turn_start",
+					"damage":15
+				}
+			},
+			"target": 0
 		}
 	]
 }

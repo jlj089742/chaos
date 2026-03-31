@@ -76,6 +76,7 @@ var game_data: Dictionary = {}
 var year_events_config: Dictionary = {}
 var _start_repo_pool: Array = []
 var _event_repo_pool: Array = []
+var _event_repo_table: Dictionary = {}
 var _box_repo_pool: Array = []
 var _shop_repo_pool: Array = []
 var map_size := Vector2.ZERO
@@ -87,9 +88,11 @@ var _card_base_tex: Texture2D = preload(CARD_BASE_PATH)
 var _shop_sold_indices: Dictionary = {}
 var _battle_overlay: Node = null
 var _player_death_sequence_active: bool = false
-var _loot_gold_claimed: bool = false
-var _loot_card_resolved: bool = false
-var _loot_card_row_button: Button = null
+var _loot_battle_entry: Dictionary = {}
+var _loot_row_claimed: Array = []
+## 与 `reward_list` 下标对齐；无对应按钮的项为 null。
+var _loot_row_buttons: Array = []
+var _loot_active_card_row_index: int = -1
 
 signal battle_loot_popup_closed
 
@@ -99,6 +102,7 @@ func _ready() -> void:
 	year_events_config = YearEventConfig.load_year_events()
 	_start_repo_pool = StartRepoConfig.load_options()
 	_event_repo_pool = EventRepoConfig.load_common_events()
+	_event_repo_table = EventRepoConfig.load_common_events_table()
 	_box_repo_pool = BoxRepoConfig.load_options()
 	_shop_repo_pool = ShopListConfig.load_items()
 	_update_top_bar()
@@ -263,11 +267,30 @@ func _on_deck_overlay_close_pressed() -> void:
 	deck_overlay.visible = false
 
 
-## 击败敌人后的战利品弹窗；`await` 至玩家点击「继续」关闭。
-func show_battle_loot_popup() -> void:
-	_loot_gold_claimed = false
-	_loot_card_resolved = false
-	_loot_card_row_button = null
+## 击败敌人后的战利品弹窗；`await` 至玩家点击「继续」关闭。`battle_entry` 为本场 `battle_repo` 条目（含 `reward_list`）。
+func show_battle_loot_popup(battle_entry: Dictionary = {}) -> void:
+	_loot_battle_entry = battle_entry.duplicate(true)
+	var rewards: Array = _loot_battle_entry.get("reward_list", [])
+	if rewards.is_empty():
+		_loot_battle_entry["reward_list"] = [
+			{"type": "gold", "gold": 30},
+			{"type": "card_common"},
+		]
+		rewards = _loot_battle_entry["reward_list"]
+	_loot_active_card_row_index = -1
+	_loot_row_claimed.clear()
+	_loot_row_buttons.clear()
+	for _i in rewards.size():
+		_loot_row_claimed.append(false)
+	for i in rewards.size():
+		var raw: Variant = rewards[i]
+		if not raw is Dictionary:
+			_loot_row_claimed[i] = true
+			continue
+		var rd: Dictionary = raw as Dictionary
+		var tt := str(rd.get("type", ""))
+		if tt != "gold" and tt != "card_common" and tt != "card_special":
+			_loot_row_claimed[i] = true
 	loot_continue_button.disabled = true
 	_rebuild_loot_list()
 	loot_card_pick_overlay.visible = false
@@ -278,46 +301,85 @@ func show_battle_loot_popup() -> void:
 func _rebuild_loot_list() -> void:
 	for c in loot_list_vbox.get_children():
 		c.queue_free()
-	var gold_btn := Button.new()
-	gold_btn.text = "30金币"
-	gold_btn.pressed.connect(_on_loot_gold_pressed.bind(gold_btn))
-	loot_list_vbox.add_child(gold_btn)
-	var card_btn := Button.new()
-	card_btn.text = "获取一张卡牌"
-	card_btn.pressed.connect(_on_loot_card_row_pressed.bind(card_btn))
-	loot_list_vbox.add_child(card_btn)
-	_loot_card_row_button = card_btn
+	_loot_row_buttons.clear()
+	var rewards: Array = _loot_battle_entry.get("reward_list", [])
+	for _i in rewards.size():
+		_loot_row_buttons.append(null)
+	for i in rewards.size():
+		var raw: Variant = rewards[i]
+		if not raw is Dictionary:
+			continue
+		var d: Dictionary = raw as Dictionary
+		var t := str(d.get("type", ""))
+		var btn := Button.new()
+		match t:
+			"gold":
+				var ga := int(d.get("gold", 0))
+				btn.text = "%d金币" % ga
+				btn.pressed.connect(_on_loot_gold_row_pressed.bind(i, ga, btn))
+			"card_common", "card_special":
+				btn.text = "获取一张卡牌"
+				btn.pressed.connect(_on_loot_card_row_pressed.bind(i, btn))
+			_:
+				continue
+		_loot_row_buttons[i] = btn
+		loot_list_vbox.add_child(btn)
 
 
 func _refresh_loot_continue_enabled() -> void:
-	loot_continue_button.disabled = not (_loot_gold_claimed and _loot_card_resolved)
+	var rewards: Array = _loot_battle_entry.get("reward_list", [])
+	var all_done := true
+	for i in rewards.size():
+		if i >= _loot_row_claimed.size() or not bool(_loot_row_claimed[i]):
+			all_done = false
+			break
+	loot_continue_button.disabled = not all_done
 
 
-func _on_loot_gold_pressed(gold_btn: Button) -> void:
-	if _loot_gold_claimed:
+func _on_loot_gold_row_pressed(row_idx: int, gold_amt: int, btn: Button) -> void:
+	if row_idx < 0 or row_idx >= _loot_row_claimed.size() or bool(_loot_row_claimed[row_idx]):
 		return
 	var g := int(game_data.get("gold", 0))
-	game_data["gold"] = g + 30
+	game_data["gold"] = g + gold_amt
 	_update_top_bar()
-	_loot_gold_claimed = true
-	gold_btn.disabled = true
-	gold_btn.text = "30金币（已领取）"
+	_loot_row_claimed[row_idx] = true
+	btn.disabled = true
+	btn.text = "%d金币（已领取）" % gold_amt
 	SaveManager.save_game(game_data)
 	_refresh_loot_continue_enabled()
 
 
-func _on_loot_card_row_pressed(_card_btn: Button) -> void:
-	if _loot_card_resolved:
+func _on_loot_card_row_pressed(row_idx: int, _row_btn: Button) -> void:
+	if row_idx < 0 or row_idx >= _loot_row_claimed.size():
 		return
+	if bool(_loot_row_claimed[row_idx]):
+		return
+	if loot_card_pick_overlay.visible:
+		return
+	_loot_active_card_row_index = row_idx
 	_open_loot_card_pick()
 
 
-func _card_pool_ids_for_role(role: String) -> Array:
+func _full_card_map_for_loot() -> Dictionary:
+	var out := _card_map_by_id().duplicate()
+	for item in MonsterInfoConfig.load_cards():
+		if not item is Dictionary:
+			continue
+		var d: Dictionary = item as Dictionary
+		var cid := int(d.get("card_id", 0))
+		if cid != 0 and not out.has(cid):
+			out[cid] = d
+	return out
+
+
+func _card_pool_ids_for_role(role: String, reward_one_only: bool = false) -> Array:
 	var ids: Array = []
 	for item in WizardInfoConfig.load_cards():
 		if not item is Dictionary:
 			continue
 		var d: Dictionary = item
+		if reward_one_only and int(d.get("reward", 0)) != 1:
+			continue
 		var cid := int(d.get("card_id", 0))
 		if cid == 0:
 			continue
@@ -333,14 +395,17 @@ func _card_pool_ids_for_role(role: String) -> Array:
 	if ids.is_empty():
 		for item in WizardInfoConfig.load_cards():
 			if item is Dictionary:
-				var cid2 := int((item as Dictionary).get("card_id", 0))
+				var d2: Dictionary = item as Dictionary
+				if reward_one_only and int(d2.get("reward", 0)) != 1:
+					continue
+				var cid2 := int(d2.get("card_id", 0))
 				if cid2 != 0:
 					ids.append(cid2)
 	return ids
 
 
-func _pick_three_distinct_card_ids_from_pool() -> Array:
-	var pool := _card_pool_ids_for_role(str(game_data.get("role", "Wizard")))
+func _pick_three_distinct_card_ids_for_common_loot() -> Array:
+	var pool := _card_pool_ids_for_role(str(game_data.get("role", "Wizard")), true)
 	var pool_copy: Array = pool.duplicate()
 	pool_copy.shuffle()
 	var out: Array = []
@@ -356,14 +421,52 @@ func _pick_three_distinct_card_ids_from_pool() -> Array:
 	return out
 
 
+func _resolve_special_loot_choose_ids(raw: Variant) -> Array:
+	var tmp: Array = []
+	if raw is Array:
+		for x in raw:
+			tmp.append(int(x))
+	var seen: Dictionary = {}
+	var out: Array = []
+	for cid_any in tmp:
+		var cid := int(cid_any)
+		if cid == 0 or bool(seen.get(cid, false)):
+			continue
+		seen[cid] = true
+		out.append(cid)
+	return out
+
+
 func _open_loot_card_pick() -> void:
 	for c in loot_pick_cards_hbox.get_children():
 		c.queue_free()
-	var ids := _pick_three_distinct_card_ids_from_pool()
-	var card_map := _card_map_by_id()
+	if _loot_active_card_row_index < 0:
+		return
+	var rewards: Array = _loot_battle_entry.get("reward_list", [])
+	if _loot_active_card_row_index >= rewards.size():
+		return
+	var row_raw: Variant = rewards[_loot_active_card_row_index]
+	if not row_raw is Dictionary:
+		return
+	var row_def: Dictionary = row_raw as Dictionary
+	var row_type := str(row_def.get("type", ""))
+	var ids: Array = []
+	if row_type == "card_common":
+		ids = _pick_three_distinct_card_ids_for_common_loot()
+	elif row_type == "card_special":
+		ids = _resolve_special_loot_choose_ids(row_def.get("choose_id", []))
+	else:
+		return
+	var card_map := _full_card_map_for_loot()
+	var filtered: Array = []
+	for cid_any in ids:
+		var cid0 := int(cid_any)
+		if card_map.has(cid0):
+			filtered.append(cid0)
+	ids = filtered
 	if ids.is_empty():
 		loot_pick_hint.text = "暂无可用卡牌，请选择放弃"
-	elif ids.size() < 3:
+	elif row_type == "card_common" and ids.size() < 3:
 		loot_pick_hint.text = "当前牌池仅提供 %d 张，请选择其一或放弃" % ids.size()
 	else:
 		loot_pick_hint.text = "点击卡牌选取，或点击下方放弃"
@@ -389,11 +492,17 @@ func _on_loot_pick_card_chosen(cid: int) -> void:
 	var deck: Array = game_data["player_deck"] as Array
 	deck.append(cid)
 	game_data["player_deck"] = deck
-	_loot_card_resolved = true
+	var row_idx := _loot_active_card_row_index
 	_close_loot_card_pick()
-	if _loot_card_row_button != null:
-		_loot_card_row_button.disabled = true
-		_loot_card_row_button.text = "获取一张卡牌（已领取）"
+	_loot_active_card_row_index = -1
+	if row_idx >= 0 and row_idx < _loot_row_claimed.size():
+		_loot_row_claimed[row_idx] = true
+	if row_idx >= 0 and row_idx < _loot_row_buttons.size():
+		var b: Variant = _loot_row_buttons[row_idx]
+		if b is Button:
+			var row_btn := b as Button
+			row_btn.disabled = true
+			row_btn.text = "获取一张卡牌（已领取）"
 	SaveManager.save_game(game_data)
 	if deck_overlay.visible:
 		_refresh_deck_overlay()
@@ -403,11 +512,17 @@ func _on_loot_pick_card_chosen(cid: int) -> void:
 func _on_loot_pick_abandon() -> void:
 	if not loot_card_pick_overlay.visible:
 		return
-	_loot_card_resolved = true
+	var row_idx := _loot_active_card_row_index
 	_close_loot_card_pick()
-	if _loot_card_row_button != null:
-		_loot_card_row_button.disabled = true
-		_loot_card_row_button.text = "获取一张卡牌（已放弃）"
+	_loot_active_card_row_index = -1
+	if row_idx >= 0 and row_idx < _loot_row_claimed.size():
+		_loot_row_claimed[row_idx] = true
+	if row_idx >= 0 and row_idx < _loot_row_buttons.size():
+		var b: Variant = _loot_row_buttons[row_idx]
+		if b is Button:
+			var row_btn := b as Button
+			row_btn.disabled = true
+			row_btn.text = "获取一张卡牌（已放弃）"
 	_refresh_loot_continue_enabled()
 
 
@@ -446,7 +561,7 @@ func _refresh_deck_overlay() -> void:
 func _update_top_bar() -> void:
 	year_value_label.text = str(int(game_data.get("year", 1)))
 	gold_value_label.text = str(int(game_data.get("gold", 200)))
-	health_value_label.text = "%d/%d" % [int(game_data.get("health", 50)), int(game_data.get("max_health", 50))]
+	health_value_label.text = "%d/%d" % [int(game_data.get("health", 70)), int(game_data.get("max_health", 70))]
 	mana_value_label.text = "%d/%d" % [int(game_data.get("mana", 36)), int(game_data.get("max_mana", 36))]
 	action_value_label.text = str(int(game_data.get("action", 3)))
 
@@ -687,6 +802,18 @@ func _pick_one_common_event() -> Dictionary:
 		return (entry as Dictionary).duplicate(true)
 	return {}
 
+
+func _get_common_event_by_key(event_key: String) -> Dictionary:
+	if _event_repo_table.is_empty():
+		return {}
+	var k := str(event_key)
+	if not _event_repo_table.has(k):
+		return {}
+	var entry: Variant = _event_repo_table[k]
+	if entry is Dictionary:
+		return (entry as Dictionary).duplicate(true)
+	return {}
+
 func _apply_effect_map(effect_raw: Variant) -> void:
 	if not effect_raw is Dictionary:
 		return
@@ -700,8 +827,12 @@ func _apply_effect_map(effect_raw: Variant) -> void:
 		game_data[key] = cur + delta
 	_clamp_primary_resources()
 
-func _show_event_interaction_popup() -> void:
-	var event_entry := _pick_one_common_event()
+func _show_event_interaction_popup(event_key: String = "") -> void:
+	var event_entry: Dictionary = {}
+	if not str(event_key).is_empty():
+		event_entry = _get_common_event_by_key(event_key)
+	if event_entry.is_empty():
+		event_entry = _pick_one_common_event()
 	if event_entry.is_empty():
 		interaction_type_label.text = "event"
 		interaction_popup.visible = true
@@ -748,6 +879,32 @@ func _on_event_option_chosen(option: Dictionary) -> void:
 	_apply_effect_map(option.get("effect", {}))
 	if await _after_player_resource_mutation_maybe_die():
 		return
+	var go_to_id: String = ""
+	var battle_id: String = ""
+	if option.has("go_to"):
+		var gt: Variant = option.get("go_to", "")
+		if gt != null:
+			go_to_id = str(gt)
+	if option.has("battle"):
+		var bt: Variant = option.get("battle", "")
+		if bt != null:
+			battle_id = str(bt)
+
+	# 1) battle：切入 `battle_repo.json` 根节点下对应 key 的怪物战斗
+	if not battle_id.is_empty():
+		interaction_popup.visible = false
+		shop_popup.visible = false
+		start_interaction_popup.visible = false
+		if _battle_overlay != null and _battle_overlay.has_method("start_battle"):
+			_battle_overlay.start_battle(false, battle_id)
+		return
+
+	# 2) go_to：点击后直接渲染到新的 event（key 来自配置）
+	if not go_to_id.is_empty():
+		_show_event_interaction_popup(go_to_id)
+		return
+
+	# 3) 普通 effect + after：显示文案并等待“继续”结算年份
 	var after_text := str(option.get("after", ""))
 	if after_text.is_empty():
 		after_text = "你选择了：%s" % str(option.get("desc", ""))
@@ -847,14 +1004,23 @@ func _open_shop_popup() -> void:
 	_rebuild_shop_items()
 
 func _card_map_by_id() -> Dictionary:
-	var cards := WizardInfoConfig.load_cards()
 	var out: Dictionary = {}
-	for item in cards:
-		if item is Dictionary:
-			var d := item as Dictionary
-			var cid := int(d.get("card_id", 0))
-			if cid != 0 and not out.has(cid):
-				out[cid] = d
+	# UI 展示卡池：同时支持 wizard 与 monster 配置来源。
+	# 这样玩家在特殊事件中获得 role 以外卡牌时，牌库/预览也能正确渲染。
+	for item in WizardInfoConfig.load_cards():
+		if not (item is Dictionary):
+			continue
+		var d := item as Dictionary
+		var cid := int(d.get("card_id", 0))
+		if cid != 0 and not out.has(cid):
+			out[cid] = d
+	for item2 in MonsterInfoConfig.load_cards():
+		if not (item2 is Dictionary):
+			continue
+		var d2 := item2 as Dictionary
+		var cid2 := int(d2.get("card_id", 0))
+		if cid2 != 0 and not out.has(cid2):
+			out[cid2] = d2
 	return out
 
 func _rebuild_shop_items() -> void:

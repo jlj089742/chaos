@@ -14,11 +14,11 @@
 			"build": [
 				{
 					"type": "battle",
-					"probability": "70"
+					"probability": "50"
 				},
 				{
 					"type": "event",
-					"probability": "30"
+					"probability": "50"
 				}
 			]
 		},
@@ -27,11 +27,11 @@
 			"build": [
 				{
 					"type": "battle",
-					"probability": "70"
+					"probability": "50"
 				},
 				{
 					"type": "event",
-					"probability": "20"
+					"probability": "40"
 				},
 				{
 					"type": "box",
@@ -48,15 +48,15 @@
 				},
 				{
 					"type": "event",
-					"probability": "20"
+					"probability": "30"
 				},
 				{
 					"type": "box",
-					"probability": "15"
+					"probability": "10"
 				},
 				{
 					"type": "rest",
-					"probability": "15"
+					"probability": "10"
 				}
 			]
 		},

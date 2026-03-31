@@ -27,6 +27,18 @@ static func entries_for_year(year: int) -> Array:
 	return table[key] as Array
 
 
+## `battle_repo.json` 根下按指定 key 取战斗条目数组。
+## 例如事件战斗可用 key 为 `"event01"`。
+static func entries_for_key(key: String) -> Array:
+	var table := load_table()
+	var k := str(key)
+	if not table.has(k):
+		return []
+	if typeof(table[k]) != TYPE_ARRAY:
+		return []
+	return table[k] as Array
+
+
 ## `battle_repo.json` 根下 `"boss"` 数组，供 Boss 交互点开战使用（与普通关卡年份池无关）。
 static func boss_entries() -> Array:
 	var table := load_table()

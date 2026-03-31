@@ -10,8 +10,8 @@ const DEFAULT_SAVE := {
 	"player_deck": [],
 	# 用于兼容旧存档：旧存档会触发首次初始化逻辑
 	"deck_initialized": false,
-	"max_health": 50,
-	"health": 50,
+	"max_health": 70,
+	"health": 70,
 	"max_mana": 36,
 	"mana": 36,
 	"max_action": 3,
@@ -83,8 +83,8 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 			# 言灵初始牌库：5张id1，5张id2，3张id3，2张id4（允许重复卡）
 			out["player_deck"] = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4]
 			out["deck_initialized"] = true
-			out["max_health"] = 50
-			out["health"] = 50
+			out["max_health"] = 70
+			out["health"] = 70
 			out["max_mana"] = 36
 			out["mana"] = 36
 			out["max_action"] = 3
@@ -93,8 +93,8 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 			out["player_deck"] = []
 			out["deck_initialized"] = true
 			# Keep default Wizard stats for now.
-			out["max_health"] = 50
-			out["health"] = 50
+			out["max_health"] = 70
+			out["health"] = 70
 			out["max_mana"] = 36
 			out["mana"] = 36
 			out["max_action"] = 3

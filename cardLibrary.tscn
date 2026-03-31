@@ -68,6 +68,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "剑修"
 
+[node name="BeastTab" type="Button" parent="MainMargin/MainVBox/TabRow" unique_id=1688355893]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "妖兽"
+
 [node name="Scroll" type="ScrollContainer" parent="MainMargin/MainVBox" unique_id=297314111]
 layout_mode = 2
 size_flags_vertical = 3

@@ -38,7 +38,7 @@ func _sync_ui_for_selected_role() -> void:
 
 	# Role introduction bubble.
 	if selected_role == ROLE_WIZARD:
-		bubble_label.text = "言灵\n破坏力非凡，追求高效爆发\n生命50/50\n法力36/36\n行动力3"
+		bubble_label.text = "言灵\n破坏力非凡，追求高效爆发\n生命70/70\n法力36/36\n行动力3"
 	else:
 		bubble_label.text = "敬请期待"
 

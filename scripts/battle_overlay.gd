@@ -10,7 +10,7 @@ const _DRAW_SHOWCASE_HOLD_SEC := 0.18
 const _DRAW_TO_HAND_SEC := 0.3
 const _DRAW_OFFSCREEN_PAD := 64.0
 const _STAT_TWEEN_SEC := 0.5
-const _MONSTER_CARD_SHOWCASE_HOLD_SEC := 2
+const _MONSTER_CARD_SHOWCASE_HOLD_SEC := 1.5
 const _MONSTER_CARDS_PER_TURN := 2
 
 ## 统一伤害结算：伤害来源（谁造成本次结算的基础伤害）
@@ -93,6 +93,8 @@ var _tip_tween: Tween = null
 var _stat_display_tween: Tween = null
 ## 为 true 时从 `battle_repo.json` 的 `boss` 列表取怪，否则按年份取普通池。
 var _use_boss_battle: bool = false
+## 非空时从 `battle_repo.json` 根节点下按该 key 取战斗条目数组（例如 `"event01"`）。
+var _battle_repo_key: String = ""
 ## 与现有 print 文案同步，供战斗日志面板展示
 var _battle_log_lines: PackedStringArray = PackedStringArray()
 
@@ -284,8 +286,9 @@ func _process(_delta: float) -> void:
 		_dragging_button.global_position = get_global_mouse_position() + _drag_pickup_offset
 
 
-func start_battle(use_boss: bool = false) -> void:
+func start_battle(use_boss: bool = false, battle_repo_key: String = "") -> void:
 	_use_boss_battle = use_boss
+	_battle_repo_key = battle_repo_key
 	_battle_log_lines.clear()
 	_sync_battle_log_textedit()
 	_battle_print("对战开始!")
@@ -341,7 +344,7 @@ func start_battle(use_boss: bool = false) -> void:
 func _on_monster_defeated() -> void:
 	end_battle()
 	if _game_main != null and _game_main.has_method("show_battle_loot_popup"):
-		await _game_main.show_battle_loot_popup()
+		await _game_main.show_battle_loot_popup(_monster_entry.duplicate(true))
 
 
 func end_battle() -> void:
@@ -364,6 +367,7 @@ func end_battle() -> void:
 	_cancel_drag()
 	set_process(false)
 	_use_boss_battle = false
+	_battle_repo_key = ""
 	if _game_main != null and _game_main.has_method("refresh_top_bar"):
 		_game_main.refresh_top_bar()
 	if _game_main != null and _game_main.has_method("set_world_map_help_visible"):
@@ -389,7 +393,9 @@ func _build_card_map() -> void:
 
 func _pick_monster() -> void:
 	var pool: Array = []
-	if _use_boss_battle:
+	if not _battle_repo_key.is_empty():
+		pool = BattleRepoConfig.entries_for_key(_battle_repo_key)
+	elif _use_boss_battle:
 		pool = BattleRepoConfig.boss_entries()
 	else:
 		var year := int(_game_data.get("year", 1))
@@ -753,6 +759,21 @@ func _trigger_buffs_at_player_turn_end() -> void:
 	_refresh_buff_ui()
 
 
+## 玩家回合开始时：结算一次性 next_turn_start buff，触发后移除（每层仅生效一次）。
+func _trigger_buffs_at_player_turn_start() -> void:
+	for i in range(_player_buffs.size() - 1, -1, -1):
+		if not (_player_buffs[i] is Dictionary):
+			continue
+		var b: Dictionary = _player_buffs[i] as Dictionary
+		if str(b.get("buff_type", "")) != "next_turn_start":
+			continue
+		var buff_show_name := "触发：" + str(b.get("buff_name", ""))
+		_show_player_tip(buff_show_name)
+		await _trigger_buff_effect(b, true)
+		_player_buffs.remove_at(i)
+	_refresh_buff_ui()
+
+
 ## 敌人回合结束时：仅结算挂在敌人身上的 turn_finish buff。
 func _trigger_buffs_at_enemy_turn_end() -> void:
 	for b in _enemy_buffs:
@@ -761,12 +782,25 @@ func _trigger_buffs_at_enemy_turn_end() -> void:
 	_refresh_buff_ui()
 
 
+## 敌人回合开始时：结算一次性 next_turn_start buff，触发后移除（每层仅生效一次）。
+func _trigger_buffs_at_enemy_turn_start() -> void:
+	for i in range(_enemy_buffs.size() - 1, -1, -1):
+		if not (_enemy_buffs[i] is Dictionary):
+			continue
+		var b: Dictionary = _enemy_buffs[i] as Dictionary
+		if str(b.get("buff_type", "")) != "next_turn_start":
+			continue
+		await _trigger_buff_effect(b, false)
+		_enemy_buffs.remove_at(i)
+	_refresh_buff_ui()
+
+
 ## 根据 buff 的 buff_type 执行效果；owner_is_player 表示该 buff 挂在玩家(true)或敌人(false)身上。
 func _trigger_buff_effect(buff: Dictionary, owner_is_player: bool) -> void:
 	var bt := str(buff.get("buff_type", ""))
 	var snap := _battle_stat_snapshot_before_pay()
 	match bt:
-		"turn_finish":
+		"turn_finish", "next_turn_start":
 			var base_dmg := int(round(float(buff.get("damage", 0))))
 			var mp_each := int(round(float(buff.get("mp", 0))))
 			## 每层单独结算一次基础伤害，便于未来「每次造成伤害」类连锁；勿合并为 base * buff_count。
@@ -831,6 +865,12 @@ func _refresh_buff_row(row: HBoxContainer, buffs: Array) -> void:
 
 
 func _append_buff_for_card_target(card: Dictionary, buff: Dictionary) -> void:
+	# next_turn_start 为“施法者自身挂 buff”，不受 card.target 影响。
+	if str(buff.get("buff_type", "")) == "next_turn_start":
+		_battle_print("施加buff给自己："+str(buff.get("buff_name", "")))
+		_add_or_stack_buff(_player_buffs, buff)
+		_refresh_buff_ui()
+		return
 	var tgt := int(card.get("target", 0))
 	if tgt == 1:
 		_battle_print("施加buff给敌人："+buff.get("buff_name"))
@@ -919,6 +959,12 @@ func _showcase_and_resolve_monster_card(cid: int) -> void:
 
 
 func _append_buff_for_monster_card(card: Dictionary, buff: Dictionary) -> void:
+	# next_turn_start 为“施法者自身挂 buff”，不受 card.target 影响。
+	if str(buff.get("buff_type", "")) == "next_turn_start":
+		_battle_print("怪物增加buff："+str(buff.get("buff_name", "")))
+		_add_or_stack_buff(_enemy_buffs, buff)
+		_refresh_buff_ui()
+		return
 	var tgt := int(card.get("target", 0))
 	if tgt == 1:
 		_battle_print("玩家增加buff："+buff.get("buff_name"))
@@ -965,9 +1011,9 @@ func _apply_monster_battle_card_effect(card: Dictionary) -> void:
 				var mx := int(_game_data.get("max_mana", 0))
 				_game_data["mana"] = clampi(cur + delta, 0, mx)
 				if delta < 0:
-					_battle_print("夺魂刺减少法力：" + str(-delta))
+					_battle_print("减少法力：" + str(-delta))
 				elif delta > 0:
-					_battle_print("夺魂刺增加法力：" + str(delta))
+					_battle_print("增加法力：" + str(delta))
 			"shield":
 				var add_sh := int(round(float(v)))
 				_enemy_battle_shield = maxi(0, _enemy_battle_shield + add_sh)
@@ -1006,6 +1052,9 @@ func _apply_monster_battle_card_effect(card: Dictionary) -> void:
 func _monster_turn() -> void:
 	_battle_print("开始怪物回合")
 	if _monster_hp <= 0:
+		return
+	await _trigger_buffs_at_enemy_turn_start()
+	if _monster_hp <= 0 or int(_game_data.get("health", 0)) <= 0:
 		return
 	_play_resolve_in_progress = true
 	for _i in _MONSTER_CARDS_PER_TURN:
@@ -1063,7 +1112,9 @@ func _try_consume_one_inffective_buff_on_enemy_if_damage(amt: int) -> int:
 		if not (_enemy_buffs[i] is Dictionary):
 			continue
 		var b: Dictionary = _enemy_buffs[i] as Dictionary
-		if str(b.get("buff_name", "")) != "鬼域":
+		# 免疫一次伤害的 buff：配置在 buff 上的 ineffective >= 1
+		# 之前实现只识别 buff_name == "鬼域"，导致其它同类（如“因果”）无法免疫。
+		if str(b.get("buff_type", "")) != "damage":
 			continue
 		var inef := int(round(float(b.get("ineffective", 0))))
 		if inef <= 0:
@@ -1076,6 +1127,34 @@ func _try_consume_one_inffective_buff_on_enemy_if_damage(amt: int) -> int:
 		stacks -= 1
 		if stacks <= 0:
 			_enemy_buffs.remove_at(i)
+		else:
+			b["buff_count"] = stacks
+		_refresh_buff_ui()
+		return 0
+	return amt
+
+
+func _try_consume_one_inffective_buff_on_player_if_damage(amt: int) -> int:
+	# 因果/鬼域同类：当玩家收到一次伤害（amt > 0）时，免疫一次伤害并消耗 1 层。
+	if amt <= 0:
+		return amt
+	for i in _player_buffs.size():
+		if not (_player_buffs[i] is Dictionary):
+			continue
+		var b: Dictionary = _player_buffs[i] as Dictionary
+		if str(b.get("buff_type", "")) != "damage":
+			continue
+		var inef := int(round(float(b.get("ineffective", 0))))
+		if inef <= 0:
+			continue
+		var stacks := int(b.get("buff_count", 1))
+		if stacks <= 0:
+			_player_buffs.remove_at(i)
+			_refresh_buff_ui()
+			return 0
+		stacks -= 1
+		if stacks <= 0:
+			_player_buffs.remove_at(i)
 		else:
 			b["buff_count"] = stacks
 		_refresh_buff_ui()
@@ -1127,6 +1206,8 @@ func _apply_battle_damage(base_damage: int, damage_source: String, damage_target
 				amt = _consume_one_damage_double_stack_from_enemy_and_multiply(amt)
 		elif amt <= 0:
 			return
+		# 玩家受伤：如果有「ineffective」类 buff，免疫一次伤害并消耗一层。
+		amt = _try_consume_one_inffective_buff_on_player_if_damage(amt)
 		_battle_print("造成"+str(amt)+"伤害")
 		_apply_damage_to_player(amt)
 
@@ -1225,6 +1306,15 @@ func _apply_damage_to_player(amount: int) -> void:
 func _begin_player_turn() -> void:
 	_player_turn = true
 	_update_turn_indicator()
+	await _trigger_buffs_at_player_turn_start()
+	if _monster_hp <= 0:
+		await _on_monster_defeated()
+		return
+	if int(_game_data.get("health", 0)) <= 0:
+		end_battle()
+		if _game_main != null and _game_main.has_method("play_player_death_sequence"):
+			await _game_main.play_player_death_sequence()
+		return
 	_game_data["action"] = int(_game_data.get("max_action", 0))
 	await _draw_cards(2)
 	_refresh_player_labels()
