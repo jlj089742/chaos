@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://dib6fbjnugle5"]
+
+[ext_resource type="Script" uid="uid://cllc77xwwath5" path="res://scripts/final_video_test.gd" id="1_final_video_test_script"]
+[ext_resource type="VideoStream" uid="uid://kmt6olwbj3yn" path="res://resource/video/final_play.ogv" id="2_tabb1"]
+
+[node name="FinalVideoTest" type="Control" unique_id=554668128]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_final_video_test_script")
+
+[node name="Black" type="ColorRect" parent="." unique_id=357759580]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="VideoPlayer" type="VideoStreamPlayer" parent="." unique_id=708176453]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("2_tabb1")
+expand = true

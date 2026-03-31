@@ -363,6 +363,9 @@
 					"probability": "100"
 				}
 			]
+		},
+		"21": {
+			"video":"res://resource/video/final_play.ogv"
 		}
 	}
 }

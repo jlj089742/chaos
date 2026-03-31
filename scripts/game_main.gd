@@ -80,6 +80,7 @@ var _event_repo_table: Dictionary = {}
 var _box_repo_pool: Array = []
 var _shop_repo_pool: Array = []
 var map_size := Vector2.ZERO
+var _final_video_flow_started: bool = false
 var _start_popup_start_tex: Texture2D = preload(START_TEX_PATH)
 var _start_popup_box_tex: Texture2D = preload(BOX_TEX_PATH)
 var _start_popup_rest_tex: Texture2D = preload(REST_TEX_PATH)
@@ -107,6 +108,9 @@ func _ready() -> void:
 	_shop_repo_pool = ShopListConfig.load_items()
 	_update_top_bar()
 	_setup_map_bounds()
+	# 若存档直接进入 21 年，则直接播放最终视频结算动画。
+	if _try_start_final_video_if_needed():
+		return
 	_restore_or_spawn_interaction_spots()
 	_setup_modal_deck_layer()
 	_bind_ui_events()
@@ -716,7 +720,113 @@ func _on_interaction_end_pressed() -> void:
 func _advance_year_and_respawn() -> void:
 	game_data["year"] = int(game_data.get("year", 1)) + 1
 	_update_top_bar()
+	if _try_start_final_video_if_needed():
+		return
 	_spawn_year_interaction_spots()
+
+
+func _try_start_final_video_if_needed() -> bool:
+	# 只触发一次，避免多处点击/回调重复创建 overlay。
+	if _final_video_flow_started:
+		return true
+
+	var year_table: Variant = year_events_config.get("yearEvent", {})
+	if typeof(year_table) != TYPE_DICTIONARY:
+		return false
+
+	var year_key := str(int(game_data.get("year", 1)))
+	if not (year_table as Dictionary).has(year_key):
+		return false
+
+	var cfg: Variant = (year_table as Dictionary)[year_key]
+	if typeof(cfg) != TYPE_DICTIONARY:
+		return false
+
+	var video_path := str((cfg as Dictionary).get("video", ""))
+	if video_path.is_empty():
+		return false
+
+	_final_video_flow_started = true
+	# 彻底阻断大地图交互（overlay 也会阻断点击），并避免继续生成交互点。
+	interaction_popup.visible = false
+	start_interaction_popup.visible = false
+	shop_popup.visible = false
+	remove_overlay.visible = false
+	deck_overlay.visible = false
+	loot_popup.visible = false
+	loot_card_pick_overlay.visible = false
+	map_help_root.visible = false
+
+	_play_final_video_then_show_thanks(video_path)
+	return true
+
+
+func _play_final_video_then_show_thanks(video_path: String) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 10000
+	layer.name = "FinalVideoCanvasLayer"
+	add_child(layer)
+
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# overlay 阻止所有 UI 点击，避免在结算期间触发其它按钮
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(root)
+
+	var black := ColorRect.new()
+	black.color = Color.BLACK
+	black.z_index = -100
+	black.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(black)
+
+	var thanks_ui := CenterContainer.new()
+	thanks_ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	thanks_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	thanks_ui.z_index = 50
+	root.add_child(thanks_ui)
+
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 24)
+	thanks_ui.add_child(vb)
+
+	var title := Label.new()
+	title.text = "感谢体验"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color.WHITE)
+	title.add_theme_font_size_override("font_size", int(get_viewport_rect().size.y * 0.09))
+	vb.add_child(title)
+
+	var back_btn := Button.new()
+	back_btn.text = "回到主界面"
+	back_btn.custom_minimum_size = Vector2(320.0, 60.0)
+	vb.add_child(back_btn)
+
+	thanks_ui.visible = false
+	back_btn.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file(MAIN_PAGE_SCENE)
+	)
+
+	var video_player := VideoStreamPlayer.new()
+	video_player.layout_mode = CONTROL_LAYOUT_ANCHORS
+	video_player.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	video_player.expand = true
+	video_player.position = Vector2.ZERO
+	video_player.z_index = 10
+	video_player.stream = load(video_path)
+	# 放进 root，确保渲染层级在黑色遮罩之上
+	root.add_child(video_player)
+	video_player.finished.connect(func() -> void:
+		if is_instance_valid(video_player):
+			video_player.stop()
+			video_player.queue_free()
+		thanks_ui.visible = true
+	)
+	if video_player.stream == null:
+		# 兜底：视频资源加载失败时直接显示感谢界面
+		thanks_ui.visible = true
+	else:
+		video_player.play()
 
 func _apply_attr_changes(changes: Array) -> void:
 	for item in changes:
