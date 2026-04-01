@@ -1304,6 +1304,7 @@ func _apply_damage_to_player(amount: int) -> void:
 
 
 func _begin_player_turn() -> void:
+	_battle_print("开始玩家回合")
 	_player_turn = true
 	_update_turn_indicator()
 	await _trigger_buffs_at_player_turn_start()
