@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dib6fbjnugle5"]
 
 [ext_resource type="Script" uid="uid://cllc77xwwath5" path="res://scripts/final_video_test.gd" id="1_final_video_test_script"]
-[ext_resource type="VideoStream" uid="uid://kmt6olwbj3yn" path="res://resource/video/final_play.ogv" id="2_tabb1"]
+[ext_resource type="VideoStream" uid="uid://djhn6hdxgap1i" path="res://resource/video/final2.ogv" id="2_tabb1"]
 
 [node name="FinalVideoTest" type="Control" unique_id=554668128]
 layout_mode = 3

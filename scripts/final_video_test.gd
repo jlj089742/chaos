@@ -2,8 +2,8 @@ extends Control
 
 signal video_finished
 
-## 用于调试：设置为需要播放的视频资源路径（例如 res://resource/video/final_play.ogv）
-@export var video_path: String = "res://resource/video/final_play.ogv"
+## 用于调试：设置为需要播放的视频资源路径（例如 res://resource/video/final2.ogv）
+@export var video_path: String = "res://resource/video/final2.ogv"
 
 @onready var _video_player: VideoStreamPlayer = $VideoPlayer
 
