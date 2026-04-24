@@ -219,5 +219,18 @@
 			},
 			"target": 0
 		}
+	],
+	"magic_weapon": [
+		{
+			"weapon_id": 101,
+			"weapon_name": "永夜",
+			"effect": {
+				"weapon_buff": {
+					"buff_name": "永夜",
+					"buff_desc":"完全免疫伤害",
+					"buff_type":"damage"
+					}
+			}
+		}
 	]
 }

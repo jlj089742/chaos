@@ -3,149 +3,163 @@
 		{
 			"card_id": 1,
 			"card_name": "烈火",
-			"desc":"造成8点伤害",
+			"desc": "造成8点伤害",
 			"mp_cost": 4,
 			"action_cost": 1,
 			"effect": {
 				"damage": 8
 			},
-			"reward":0,
+			"reward": 0,
 			"target": 1
 		},
 		{
 			"card_id": 2,
 			"card_name": "寒冰",
-			"desc":"增加8点护盾",
+			"desc": "增加8点护盾",
 			"mp_cost": 3,
 			"action_cost": 0,
 			"effect": {
 				"shield": 8
 			},
-			"reward":0,
+			"reward": 0,
 			"target": 0
 		},
 		{
 			"card_id": 3,
 			"card_name": "落雷",
-			"desc":"造成20点伤害",
+			"desc": "造成20点伤害",
 			"mp_cost": 9,
 			"action_cost": 1,
 			"effect": {
 				"damage": 20
 			},
-			"reward":0,
+			"reward": 0,
 			"target": 1
 		},
 		{
 			"card_id": 4,
 			"card_name": "调息",
-			"desc":"恢复20法力",
+			"desc": "恢复20法力",
 			"mp_cost": 0,
 			"action_cost": 1,
 			"effect": {
 				"mp": 20
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 0
 		},
 		{
 			"card_id": 5,
 			"card_name": "通明",
-			"desc":"下一次造成的法术伤害翻倍",
+			"desc": "下一次造成的法术伤害翻倍",
 			"mp_cost": 4,
 			"action_cost": 1,
 			"effect": {
 				"buff": {
-					"buff_name":"通明",
-					"buff_desc":"下一次造成的法术伤害翻倍",
-					"buff_type":"damage",
-					"double_damage":1
+					"buff_name": "通明",
+					"buff_desc": "下一次造成的法术伤害翻倍",
+					"buff_type": "damage",
+					"double_damage": 1
 				}
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 0
 		},
 		{
 			"card_id": 6,
 			"card_name": "君焰",
-			"desc":"造成30点伤害",
+			"desc": "造成30点伤害",
 			"mp_cost": 12,
 			"action_cost": 2,
 			"effect": {
 				"damage": 30
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 1
 		},
 		{
 			"card_id": 7,
 			"card_name": "正念",
-			"desc":"抽2张牌",
+			"desc": "抽2张牌",
 			"mp_cost": 4,
 			"action_cost": 1,
 			"effect": {
 				"draw": 2
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 0
 		},
 		{
 			"card_id": 8,
 			"card_name": "三昧真火",
-			"desc":"每回合结束，造成10点伤害",
+			"desc": "每回合结束，造成10点伤害",
 			"mp_cost": 12,
 			"action_cost": 2,
 			"effect": {
 				"buff": {
-					"buff_name":"三昧真火",
-					"buff_desc":"每回合结束，造成10点伤害",
-					"buff_type":"turn_finish",
-					"damage":10
+					"buff_name": "三昧真火",
+					"buff_desc": "每回合结束，造成10点伤害",
+					"buff_type": "turn_finish",
+					"damage": 10
 				}
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 0
 		},
 		{
 			"card_id": 9,
 			"card_name": "归元",
-			"desc":"每回合结束，恢复8点法力",
+			"desc": "每回合结束，恢复8点法力",
 			"mp_cost": 0,
 			"action_cost": 2,
 			"effect": {
 				"buff": {
-					"buff_name":"归元",
-					"buff_desc":"每回合结束，恢复8点法力",
-					"buff_type":"turn_finish",
-					"mp":8
+					"buff_name": "归元",
+					"buff_desc": "每回合结束，恢复8点法力",
+					"buff_type": "turn_finish",
+					"mp": 8
 				}
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 0
 		},
 		{
 			"card_id": 10,
 			"card_name": "混元盾",
-			"desc":"增加20点护盾",
+			"desc": "增加20点护盾",
 			"mp_cost": 7,
 			"action_cost": 0,
 			"effect": {
 				"shield": 20
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 0
 		},
 		{
 			"card_id": 11,
 			"card_name": "不动明王",
-			"desc":"增加30点护盾",
+			"desc": "增加30点护盾",
 			"mp_cost": 0,
 			"action_cost": 3,
 			"effect": {
 				"shield": 30
 			},
-			"reward":1,
+			"reward": 1,
 			"target": 0
+		}
+	],
+	"magic_weapon": [
+		{
+			"weapon_id": 1,
+			"weapon_name": "灵灯",
+			"effect": {
+				"weapon_buff": {
+					"buff_name": "灵灯",
+					"buff_desc": "每回合结束，恢复5点法力",
+					"buff_type": "turn_finish",
+					"mp": 5
+				}
+			}
 		}
 	]
 }

@@ -8,6 +8,8 @@ const DEFAULT_SAVE := {
 	"role": "Wizard",
 	# 玩家牌库（允许重复卡，数组内存放 card_id）
 	"player_deck": [],
+	# 玩家法宝（数组内存放 weapon_id）
+	"player_weapons": [],
 	# 用于兼容旧存档：旧存档会触发首次初始化逻辑
 	"deck_initialized": false,
 	"max_health": 70,
@@ -47,6 +49,8 @@ static func load_save() -> Dictionary:
 
 	if not data.has("player_deck") or typeof(data["player_deck"]) != TYPE_ARRAY:
 		data["player_deck"] = []
+	if not data.has("player_weapons") or typeof(data["player_weapons"]) != TYPE_ARRAY:
+		data["player_weapons"] = []
 	if not data.has("deck_initialized") or typeof(data["deck_initialized"]) != TYPE_BOOL:
 		data["deck_initialized"] = false
 
@@ -82,6 +86,8 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 		"Wizard":
 			# 言灵初始牌库：5张id1，5张id2，3张id3，2张id4（允许重复卡）
 			out["player_deck"] = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4]
+			# 言灵开局默认拥有 weapon_id=1
+			out["player_weapons"] = [1]
 			out["deck_initialized"] = true
 			out["max_health"] = 70
 			out["health"] = 70
@@ -91,6 +97,7 @@ static func fresh_save_for_role(role: String) -> Dictionary:
 			out["action"] = 3
 		_:
 			out["player_deck"] = []
+			out["player_weapons"] = []
 			out["deck_initialized"] = true
 			# Keep default Wizard stats for now.
 			out["max_health"] = 70

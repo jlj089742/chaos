@@ -68,4 +68,9 @@ text = "查看存档"
 [node name="ViewCardLibraryButton" type="Button" parent="CenterButtons" unique_id=1834129001]
 layout_mode = 2
 size_flags_horizontal = 4
-text = "查看牌库"
+text = "卡牌图鉴"
+
+[node name="ViewWeaponLibraryButton" type="Button" parent="CenterButtons" unique_id=1834129002]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "法宝图鉴"

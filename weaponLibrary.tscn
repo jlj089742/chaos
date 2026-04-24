@@ -1,0 +1,103 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/weapon_library_page.gd" id="1_weapon_lib"]
+
+[node name="WeaponLibrary" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_weapon_lib")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.07, 0.08, 0.11, 1)
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -140.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = 60.0
+grow_horizontal = 0
+text = "返回"
+
+[node name="MainMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 72.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="MainVBox" type="VBoxContainer" parent="MainMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TabRow" type="HBoxContainer" parent="MainMargin/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="WizardTab" type="Button" parent="MainMargin/MainVBox/TabRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "言灵"
+
+[node name="MasterTab" type="Button" parent="MainMargin/MainVBox/TabRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "大道"
+
+[node name="SwordTab" type="Button" parent="MainMargin/MainVBox/TabRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "剑修"
+
+[node name="BeastTab" type="Button" parent="MainMargin/MainVBox/TabRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "妖兽"
+
+[node name="Scroll" type="ScrollContainer" parent="MainMargin/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginInner" type="MarginContainer" parent="MainMargin/MainVBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 16
+
+[node name="ContentVBox" type="VBoxContainer" parent="MainMargin/MainVBox/Scroll/MarginInner"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="EmptyHint" type="Label" parent="MainMargin/MainVBox/Scroll/MarginInner/ContentVBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.74, 0.8, 1)
+text = "敬请期待"
+horizontal_alignment = 1
+
+[node name="WeaponListVBox" type="VBoxContainer" parent="MainMargin/MainVBox/Scroll/MarginInner/ContentVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12

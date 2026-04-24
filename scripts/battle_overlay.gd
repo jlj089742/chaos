@@ -318,6 +318,8 @@ func start_battle(use_boss: bool = false, battle_repo_key: String = "") -> void:
 	_hand_entries.clear()
 	_player_buffs.clear()
 	_enemy_buffs.clear()
+	_apply_player_weapon_buffs_on_battle_start()
+	_apply_enemy_weapon_buffs_on_battle_start()
 	_player_turn = true
 	_hide_help_hint_bubble()
 
@@ -836,6 +838,60 @@ func _refresh_buff_ui() -> void:
 	_refresh_buff_row(_player_buff_row, _player_buffs)
 	_refresh_buff_row(_enemy_buff_row, _enemy_buffs)
 
+func _apply_player_weapon_buffs_on_battle_start() -> void:
+	if _game_main == null or not _game_main.has_method("get_player_weapon_buffs"):
+		return
+	var weapon_buffs_raw: Variant = _game_main.get_player_weapon_buffs()
+	if typeof(weapon_buffs_raw) != TYPE_ARRAY:
+		return
+	for item in weapon_buffs_raw as Array:
+		if not (item is Dictionary):
+			continue
+		var buff := (item as Dictionary).duplicate(true)
+		if not buff.has("buff_source"):
+			buff["buff_source"] = "weapon"
+		_add_or_stack_buff(_player_buffs, buff)
+		_battle_print("法宝生效：" + str(buff.get("buff_name", "")))
+	_refresh_buff_ui()
+
+func _apply_enemy_weapon_buffs_on_battle_start() -> void:
+	var weapon_map: Dictionary = {}
+	for item in MonsterInfoConfig.load_magic_weapons():
+		if not (item is Dictionary):
+			continue
+		var w := item as Dictionary
+		var wid := int(w.get("weapon_id", 0))
+		if wid != 0 and not weapon_map.has(wid):
+			weapon_map[wid] = w
+	var ids: Array = []
+	var single_id := int(_monster_entry.get("weapon_id", 0))
+	if single_id != 0:
+		ids.append(single_id)
+	var id_list_raw: Variant = _monster_entry.get("weapon_id_list", [])
+	if id_list_raw is Array:
+		for id_any in id_list_raw as Array:
+			var wid2 := int(id_any)
+			if wid2 != 0:
+				ids.append(wid2)
+	for wid_any in ids:
+		var wid := int(wid_any)
+		if not weapon_map.has(wid):
+			continue
+		var weapon: Dictionary = weapon_map[wid] as Dictionary
+		var effect_raw: Variant = weapon.get("effect", {})
+		if not (effect_raw is Dictionary):
+			continue
+		var weapon_buff_raw: Variant = (effect_raw as Dictionary).get("weapon_buff", {})
+		if not (weapon_buff_raw is Dictionary):
+			continue
+		var buff := (weapon_buff_raw as Dictionary).duplicate(true)
+		buff["buff_source"] = "weapon"
+		buff["weapon_id"] = wid
+		buff["weapon_name"] = str(weapon.get("weapon_name", ""))
+		_add_or_stack_buff(_enemy_buffs, buff)
+		_battle_print("怪物法宝生效：" + str(buff.get("buff_name", "")))
+	_refresh_buff_ui()
+
 
 func _refresh_buff_row(row: HBoxContainer, buffs: Array) -> void:
 	for c in row.get_children():
@@ -847,7 +903,8 @@ func _refresh_buff_row(row: HBoxContainer, buffs: Array) -> void:
 		var dot := Panel.new()
 		dot.custom_minimum_size = Vector2(22, 22)
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.92, 0.42, 0.22, 1.0)
+		var is_weapon_buff := str(bd.get("buff_source", "")) == "weapon"
+		sb.bg_color = Color(0.25, 0.58, 0.95, 1.0) if is_weapon_buff else Color(0.92, 0.42, 0.22, 1.0)
 		sb.set_corner_radius_all(11)
 		dot.add_theme_stylebox_override("panel", sb)
 		var name_part := str(bd.get("buff_name", ""))

@@ -8,22 +8,9 @@ const START_TEX_PATH := "res://resource/startbase.png"
 const BOX_TEX_PATH := "res://resource/box.png"
 const REST_TEX_PATH := "res://resource/rest.png"
 const EVENT_FALLBACK_TEX_PATH := "res://resource/startbase.png"
-const CARD_BASE_PATH := "res://resource/card_base.png"
 const CARD_SCALE := 1.0 / 3.0
 const SHOP_CARD_SCALE := 0.29
 const CONTROL_LAYOUT_ANCHORS := 1
-const _CARD_REF_W := 736.0
-const _CARD_REF_H := 1024.0
-const _COST_CIRCLE_R := 53.0
-const _MP_CIRCLE_CX := 95.0
-const _ACT_CIRCLE_CX := 640.0
-const _COST_CIRCLE_CY := 100.0
-const _MP_COST_L := (_MP_CIRCLE_CX - _COST_CIRCLE_R) / _CARD_REF_W
-const _MP_COST_R := (_MP_CIRCLE_CX + _COST_CIRCLE_R) / _CARD_REF_W
-const _ACT_COST_L := (_ACT_CIRCLE_CX - _COST_CIRCLE_R) / _CARD_REF_W
-const _ACT_COST_R := (_ACT_CIRCLE_CX + _COST_CIRCLE_R) / _CARD_REF_W
-const _COST_BOX_T := (_COST_CIRCLE_CY - _COST_CIRCLE_R) / _CARD_REF_H
-const _COST_BOX_B := (_COST_CIRCLE_CY + _COST_CIRCLE_R) / _CARD_REF_H
 
 @onready var game_camera: Camera2D = $GameCamera
 @onready var map_sprite: Sprite2D = $MapSprite
@@ -34,11 +21,16 @@ const _COST_BOX_B := (_COST_CIRCLE_CY + _COST_CIRCLE_R) / _CARD_REF_H
 @onready var mana_value_label: Label = $UI/TopBar/TopBarContent/ManaValueLabel
 @onready var action_value_label: Label = $UI/TopBar/TopBarContent/ActionValueLabel
 @onready var settings_popup: PanelContainer = $UI/SettingsPopup
+@onready var weapon_button: Button = $UI/TopBar/TopBarContent/WeaponLibraryButton
 @onready var deck_button: Button = $UI/TopBar/TopBarContent/DeckLibraryButton
 @onready var deck_overlay: Control = $UI/DeckOverlay
 @onready var deck_overlay_close_button: Button = $UI/DeckOverlay/Root/Panel/Content/VBox/TopRow/DeckOverlayCloseButton
 @onready var deck_grid: GridContainer = $UI/DeckOverlay/Root/Panel/Content/VBox/Scroll/DeckGrid
 @onready var deck_empty_hint: Label = $UI/DeckOverlay/Root/Panel/Content/VBox/DeckEmptyHint
+@onready var weapon_overlay: Control = $UI/WeaponOverlay
+@onready var weapon_overlay_close_button: Button = $UI/WeaponOverlay/Root/Panel/Content/VBox/TopRow/WeaponOverlayCloseButton
+@onready var weapon_list_vbox: VBoxContainer = $UI/WeaponOverlay/Root/Panel/Content/VBox/Scroll/WeaponListVBox
+@onready var weapon_empty_hint: Label = $UI/WeaponOverlay/Root/Panel/Content/VBox/WeaponEmptyHint
 @onready var interaction_popup: PanelContainer = $UI/InteractionPopup
 @onready var interaction_type_label: Label = $UI/InteractionPopup/InteractionPopupContent/InteractionTypeLabel
 @onready var interaction_end_button: Button = $UI/InteractionPopup/InteractionPopupContent/InteractionEndButton
@@ -85,7 +77,6 @@ var _start_popup_start_tex: Texture2D = preload(START_TEX_PATH)
 var _start_popup_box_tex: Texture2D = preload(BOX_TEX_PATH)
 var _start_popup_rest_tex: Texture2D = preload(REST_TEX_PATH)
 var _start_popup_event_fallback_tex: Texture2D = preload(EVENT_FALLBACK_TEX_PATH)
-var _card_base_tex: Texture2D = preload(CARD_BASE_PATH)
 var _shop_sold_indices: Dictionary = {}
 var _battle_overlay: Node = null
 var _player_death_sequence_active: bool = false
@@ -100,6 +91,7 @@ signal battle_loot_popup_closed
 func _ready() -> void:
 	game_data = SaveManager.load_save()
 	_ensure_player_deck_initialized()
+	_ensure_player_weapon_initialized()
 	year_events_config = YearEventConfig.load_year_events()
 	_start_repo_pool = StartRepoConfig.load_options()
 	_event_repo_pool = EventRepoConfig.load_common_events()
@@ -121,6 +113,7 @@ func _ready() -> void:
 	shop_popup.visible = false
 	remove_overlay.visible = false
 	deck_overlay.visible = false
+	weapon_overlay.visible = false
 	loot_popup.visible = false
 	loot_card_pick_overlay.visible = false
 	_battle_overlay = BATTLE_OVERLAY_SCENE.instantiate()
@@ -142,7 +135,32 @@ func set_world_map_help_visible(show: bool) -> void:
 
 
 func create_card_for_ui(card: Dictionary, scale: float = CARD_SCALE) -> Control:
-	return _create_card_widget(card, scale)
+	return CardUIFactory.create_card_widget(card, scale, true)
+
+func get_player_weapon_buffs() -> Array:
+	var out: Array = []
+	var role := str(game_data.get("role", "Wizard"))
+	var weapon_map := WeaponCatalog.build_weapon_map_for_role(role)
+	var raw_weapons: Variant = game_data.get("player_weapons", [])
+	if typeof(raw_weapons) != TYPE_ARRAY:
+		return out
+	for wid_any in raw_weapons as Array:
+		var wid := int(wid_any)
+		if not weapon_map.has(wid):
+			continue
+		var weapon: Dictionary = weapon_map[wid] as Dictionary
+		var effect_raw: Variant = weapon.get("effect", {})
+		if not (effect_raw is Dictionary):
+			continue
+		var weapon_buff_raw: Variant = (effect_raw as Dictionary).get("weapon_buff", {})
+		if not (weapon_buff_raw is Dictionary):
+			continue
+		var buff := (weapon_buff_raw as Dictionary).duplicate(true)
+		buff["buff_source"] = "weapon"
+		buff["weapon_id"] = wid
+		buff["weapon_name"] = str(weapon.get("weapon_name", ""))
+		out.append(buff)
+	return out
 
 func _setup_modal_deck_layer() -> void:
 	# 牌库仅查看：放到更高 CanvasLayer，避免与战斗层（同层动态节点）抢点击导致无法关闭
@@ -152,6 +170,8 @@ func _setup_modal_deck_layer() -> void:
 	add_child(modal_layer)
 	$UI.remove_child(deck_overlay)
 	modal_layer.add_child(deck_overlay)
+	$UI.remove_child(weapon_overlay)
+	modal_layer.add_child(weapon_overlay)
 
 
 func _setup_map_bounds() -> void:
@@ -173,6 +193,7 @@ func _setup_map_bounds() -> void:
 
 func _bind_ui_events() -> void:
 	$UI/TopBar/TopBarContent/SettingsButton.pressed.connect(_on_settings_button_pressed)
+	weapon_button.pressed.connect(_on_weapon_button_pressed)
 	deck_button.pressed.connect(_on_deck_button_pressed)
 	$UI/SettingsPopup/PopupContent/SaveGameButton.pressed.connect(_on_save_game_pressed)
 	$UI/SettingsPopup/PopupContent/ExitButton.pressed.connect(_on_exit_pressed)
@@ -181,6 +202,7 @@ func _bind_ui_events() -> void:
 	shop_continue_button.pressed.connect(_on_shop_continue_pressed)
 	remove_cancel_button.pressed.connect(_on_remove_cancel_pressed)
 	deck_overlay_close_button.pressed.connect(_on_deck_overlay_close_pressed)
+	weapon_overlay_close_button.pressed.connect(_on_weapon_overlay_close_pressed)
 	loot_continue_button.pressed.connect(_on_loot_continue_pressed)
 	loot_pick_abandon_button.pressed.connect(_on_loot_pick_abandon)
 	map_help_button.pressed.connect(_on_map_help_button_pressed)
@@ -260,7 +282,26 @@ func _ensure_player_deck_initialized() -> void:
 		game_data["deck_initialized"] = true
 		SaveManager.save_game(game_data)
 
+func _seed_weapon_for_role(role: String) -> Array:
+	match role:
+		"Wizard":
+			return [1]
+		_:
+			return []
+
+func _ensure_player_weapon_initialized() -> void:
+	var role := str(game_data.get("role", "Wizard"))
+	if not game_data.has("player_weapons") or typeof(game_data["player_weapons"]) != TYPE_ARRAY:
+		game_data["player_weapons"] = _seed_weapon_for_role(role)
+		SaveManager.save_game(game_data)
+		return
+	var weapons := game_data["player_weapons"] as Array
+	if role == "Wizard" and weapons.is_empty():
+		game_data["player_weapons"] = [1]
+		SaveManager.save_game(game_data)
+
 func _on_deck_button_pressed() -> void:
+	weapon_overlay.visible = false
 	if deck_overlay.visible:
 		_on_deck_overlay_close_pressed()
 		return
@@ -269,6 +310,59 @@ func _on_deck_button_pressed() -> void:
 
 func _on_deck_overlay_close_pressed() -> void:
 	deck_overlay.visible = false
+
+func _on_weapon_button_pressed() -> void:
+	deck_overlay.visible = false
+	if weapon_overlay.visible:
+		_on_weapon_overlay_close_pressed()
+		return
+	_refresh_weapon_overlay()
+	weapon_overlay.visible = true
+
+func _on_weapon_overlay_close_pressed() -> void:
+	weapon_overlay.visible = false
+
+func _refresh_weapon_overlay() -> void:
+	for c in weapon_list_vbox.get_children():
+		c.queue_free()
+	var role := str(game_data.get("role", "Wizard"))
+	var map := WeaponCatalog.build_weapon_map_for_role(role)
+	var raw_weapons: Variant = game_data.get("player_weapons", [])
+	if typeof(raw_weapons) != TYPE_ARRAY:
+		weapon_empty_hint.visible = true
+		weapon_empty_hint.text = "暂无法宝"
+		return
+	var ids: Array = raw_weapons as Array
+	if ids.is_empty():
+		weapon_empty_hint.visible = true
+		weapon_empty_hint.text = "暂无法宝"
+		return
+	weapon_empty_hint.visible = false
+	for id_any in ids:
+		var wid := int(id_any)
+		if not map.has(wid):
+			continue
+		var w: Dictionary = map[wid] as Dictionary
+		var name_label := Label.new()
+		name_label.text = "【%s】" % str(w.get("weapon_name", "未知法宝"))
+		name_label.add_theme_font_size_override("font_size", 18)
+		weapon_list_vbox.add_child(name_label)
+		var effect_raw: Variant = w.get("effect", {})
+		var weapon_buff_raw: Variant = {}
+		if effect_raw is Dictionary:
+			weapon_buff_raw = (effect_raw as Dictionary).get("weapon_buff", {})
+		var desc := ""
+		if weapon_buff_raw is Dictionary:
+			desc = str((weapon_buff_raw as Dictionary).get("buff_desc", ""))
+		var desc_label := Label.new()
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.text = "效果：%s" % desc
+		weapon_list_vbox.add_child(desc_label)
+		var sep := HSeparator.new()
+		weapon_list_vbox.add_child(sep)
+	if weapon_list_vbox.get_child_count() == 0:
+		weapon_empty_hint.visible = true
+		weapon_empty_hint.text = "暂无法宝"
 
 
 ## 击败敌人后的战利品弹窗；`await` 至玩家点击「继续」关闭。`battle_entry` 为本场 `battle_repo` 条目（含 `reward_list`）。
@@ -365,47 +459,11 @@ func _on_loot_card_row_pressed(row_idx: int, _row_btn: Button) -> void:
 
 
 func _full_card_map_for_loot() -> Dictionary:
-	var out := _card_map_by_id().duplicate()
-	for item in MonsterInfoConfig.load_cards():
-		if not item is Dictionary:
-			continue
-		var d: Dictionary = item as Dictionary
-		var cid := int(d.get("card_id", 0))
-		if cid != 0 and not out.has(cid):
-			out[cid] = d
-	return out
+	return CardCatalog.build_card_map(true, true)
 
 
 func _card_pool_ids_for_role(role: String, reward_one_only: bool = false) -> Array:
-	var ids: Array = []
-	for item in WizardInfoConfig.load_cards():
-		if not item is Dictionary:
-			continue
-		var d: Dictionary = item
-		if reward_one_only and int(d.get("reward", 0)) != 1:
-			continue
-		var cid := int(d.get("card_id", 0))
-		if cid == 0:
-			continue
-		var roles_raw: Variant = d.get("roles", null)
-		if roles_raw is Array:
-			var rs: Array = roles_raw
-			for r in rs:
-				if str(r) == role:
-					ids.append(cid)
-					break
-		elif role == "Wizard":
-			ids.append(cid)
-	if ids.is_empty():
-		for item in WizardInfoConfig.load_cards():
-			if item is Dictionary:
-				var d2: Dictionary = item as Dictionary
-				if reward_one_only and int(d2.get("reward", 0)) != 1:
-					continue
-				var cid2 := int(d2.get("card_id", 0))
-				if cid2 != 0:
-					ids.append(cid2)
-	return ids
+	return CardCatalog.build_card_pool_ids_for_role(role, reward_one_only)
 
 
 func _pick_three_distinct_card_ids_for_common_loot() -> Array:
@@ -480,7 +538,7 @@ func _open_loot_card_pick() -> void:
 			continue
 		var btn := Button.new()
 		btn.flat = true
-		var w := _create_card_widget(card_map[cid] as Dictionary, loot_scale)
+		var w := CardUIFactory.create_card_widget(card_map[cid] as Dictionary, loot_scale, true)
 		btn.add_child(w)
 		var wsize: Vector2 = w.custom_minimum_size
 		btn.custom_minimum_size = wsize + Vector2(8, 8)
@@ -555,12 +613,12 @@ func _refresh_deck_overlay() -> void:
 		deck_empty_hint.visible = true
 		deck_empty_hint.text = "暂无牌"
 		return
-	var card_map := _card_map_by_id()
+	var card_map := CardCatalog.build_card_map(true, true)
 	deck_empty_hint.visible = false
 	for id_any in deck:
 		var cid := int(id_any)
 		if card_map.has(cid):
-			deck_grid.add_child(_create_card_widget(card_map[cid] as Dictionary))
+			deck_grid.add_child(CardUIFactory.create_card_widget(card_map[cid] as Dictionary, CARD_SCALE, true))
 
 func _update_top_bar() -> void:
 	year_value_label.text = str(int(game_data.get("year", 1)))
@@ -753,6 +811,7 @@ func _try_start_final_video_if_needed() -> bool:
 	shop_popup.visible = false
 	remove_overlay.visible = false
 	deck_overlay.visible = false
+	weapon_overlay.visible = false
 	loot_popup.visible = false
 	loot_card_pick_overlay.visible = false
 	map_help_root.visible = false
@@ -1113,30 +1172,10 @@ func _open_shop_popup() -> void:
 	shop_hint_label.text = "点击商品购买"
 	_rebuild_shop_items()
 
-func _card_map_by_id() -> Dictionary:
-	var out: Dictionary = {}
-	# UI 展示卡池：同时支持 wizard 与 monster 配置来源。
-	# 这样玩家在特殊事件中获得 role 以外卡牌时，牌库/预览也能正确渲染。
-	for item in WizardInfoConfig.load_cards():
-		if not (item is Dictionary):
-			continue
-		var d := item as Dictionary
-		var cid := int(d.get("card_id", 0))
-		if cid != 0 and not out.has(cid):
-			out[cid] = d
-	for item2 in MonsterInfoConfig.load_cards():
-		if not (item2 is Dictionary):
-			continue
-		var d2 := item2 as Dictionary
-		var cid2 := int(d2.get("card_id", 0))
-		if cid2 != 0 and not out.has(cid2):
-			out[cid2] = d2
-	return out
-
 func _rebuild_shop_items() -> void:
 	for c in shop_grid.get_children():
 		c.queue_free()
-	var card_map := _card_map_by_id()
+	var card_map := CardCatalog.build_card_map(true, true)
 	for i in _shop_repo_pool.size():
 		var raw: Variant = _shop_repo_pool[i]
 		if not raw is Dictionary:
@@ -1164,7 +1203,7 @@ func _rebuild_shop_items() -> void:
 				var attr: Dictionary = attr_raw
 				cid = int(attr.get("card_id", 0))
 			if card_map.has(cid):
-				btn.add_child(_create_card_widget(card_map[cid] as Dictionary, SHOP_CARD_SCALE))
+				btn.add_child(CardUIFactory.create_card_widget(card_map[cid] as Dictionary, SHOP_CARD_SCALE, true))
 			else:
 				btn.text = "%s\ncard_id=%d" % [str(item.get("shop_name", "未知卡牌")), cid]
 		else:
@@ -1316,7 +1355,7 @@ func _show_remove_overlay() -> void:
 		return
 	for c in remove_deck_grid.get_children():
 		c.queue_free()
-	var card_map := _card_map_by_id()
+	var card_map := CardCatalog.build_card_map(true, true)
 	for i in deck.size():
 		var cid := int(deck[i])
 		var btn := Button.new()
@@ -1348,97 +1387,6 @@ func _on_shop_continue_pressed() -> void:
 	shop_popup.visible = false
 	remove_overlay.visible = false
 	_on_start_continue_pressed()
-
-func _create_card_widget(card: Dictionary, scale: float = CARD_SCALE) -> Control:
-	var full_size := _card_base_tex.get_size()
-	var card_size := full_size * scale
-	var root := Control.new()
-	root.custom_minimum_size = card_size
-	# 用于嵌入商品按钮时，不拦截点击事件（否则按钮 pressed 不会触发）
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var m := scale
-	var cost_font_sz := clampi(int(round(56.0 * m)), 15, 22)
-	var body_font_sz := clampi(int(round(38.0 * m)), 10, 16)
-	var name_font_sz := clampi(int(round(44.0 * m)), 12, 18)
-
-	var bg := TextureRect.new()
-	bg.layout_mode = CONTROL_LAYOUT_ANCHORS
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.texture = _card_base_tex
-	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(bg)
-
-	var mp := Label.new()
-	mp.layout_mode = CONTROL_LAYOUT_ANCHORS
-	mp.text = _card_stat_int_str(card, "mp_cost")
-	mp.add_theme_font_size_override("font_size", cost_font_sz)
-	mp.add_theme_color_override("font_color", Color(0.95, 0.96, 1.0))
-	mp.set_anchor(SIDE_LEFT, _MP_COST_L)
-	mp.set_anchor(SIDE_RIGHT, _MP_COST_R)
-	mp.set_anchor(SIDE_TOP, _COST_BOX_T)
-	mp.set_anchor(SIDE_BOTTOM, _COST_BOX_B)
-	mp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	mp.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	mp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(mp)
-
-	var act := Label.new()
-	act.layout_mode = CONTROL_LAYOUT_ANCHORS
-	act.text = _card_stat_int_str(card, "action_cost")
-	act.add_theme_font_size_override("font_size", cost_font_sz)
-	act.add_theme_color_override("font_color", Color(0.95, 0.96, 1.0))
-	act.set_anchor(SIDE_LEFT, _ACT_COST_L)
-	act.set_anchor(SIDE_RIGHT, _ACT_COST_R)
-	act.set_anchor(SIDE_TOP, _COST_BOX_T)
-	act.set_anchor(SIDE_BOTTOM, _COST_BOX_B)
-	act.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	act.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	act.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(act)
-
-	var name_label := Label.new()
-	name_label.layout_mode = CONTROL_LAYOUT_ANCHORS
-	name_label.text = str(card.get("card_name", ""))
-	name_label.add_theme_font_size_override("font_size", name_font_sz)
-	name_label.add_theme_color_override("font_color", Color(1, 1, 1))
-	name_label.set_anchor(SIDE_LEFT, 85.0 / _CARD_REF_W)
-	name_label.set_anchor(SIDE_RIGHT, 650.0 / _CARD_REF_W)
-	name_label.set_anchor(SIDE_TOP, 160.0 / _CARD_REF_H)
-	name_label.set_anchor(SIDE_BOTTOM, 420.0 / _CARD_REF_H)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(name_label)
-
-	var desc := Label.new()
-	desc.layout_mode = CONTROL_LAYOUT_ANCHORS
-	desc.text = str(card.get("desc", ""))
-	desc.add_theme_font_size_override("font_size", body_font_sz)
-	desc.add_theme_color_override("font_color", Color(0.94, 0.96, 1.0))
-	desc.set_anchor(SIDE_LEFT, 85.0 / _CARD_REF_W)
-	desc.set_anchor(SIDE_RIGHT, 650.0 / _CARD_REF_W)
-	desc.set_anchor(SIDE_TOP, 615.0 / _CARD_REF_H)
-	desc.set_anchor(SIDE_BOTTOM, 935.0 / _CARD_REF_H)
-	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(desc)
-
-	return root
-
-func _card_stat_int_str(card: Dictionary, key: String) -> String:
-	var v: Variant = card.get(key, 0)
-	if typeof(v) == TYPE_INT:
-		return str(v)
-	if typeof(v) == TYPE_FLOAT:
-		return str(int(round(v)))
-	return str(int(round(float(v))))
-
 
 ## 通用玩家死亡/失败演出：全屏自上而下被黑色填满（约 2s）→ 居中大字 + 唯一按钮跳转主菜单。其它系统也可 `await game_main.play_player_death_sequence()`。
 func play_player_death_sequence(main_text: String = "死", button_text: String = "结束") -> void:

@@ -106,6 +106,10 @@ text = "3"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="WeaponLibraryButton" type="Button" parent="UI/TopBar/TopBarContent" unique_id=999000003]
+layout_mode = 2
+text = "法宝"
+
 [node name="DeckLibraryButton" type="Button" parent="UI/TopBar/TopBarContent" unique_id=999000001]
 layout_mode = 2
 text = "牌库"
@@ -487,6 +491,77 @@ size_flags_horizontal = 3
 theme_override_constants/h_separation = 22
 theme_override_constants/v_separation = 24
 columns = 5
+
+[node name="WeaponOverlay" type="Control" parent="UI" unique_id=183250]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Shade" type="ColorRect" parent="UI/WeaponOverlay" unique_id=183251]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Root" type="MarginContainer" parent="UI/WeaponOverlay" unique_id=183252]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 280
+theme_override_constants/margin_top = 140
+theme_override_constants/margin_right = 280
+theme_override_constants/margin_bottom = 120
+
+[node name="Panel" type="PanelContainer" parent="UI/WeaponOverlay/Root" unique_id=183253]
+layout_mode = 2
+
+[node name="Content" type="MarginContainer" parent="UI/WeaponOverlay/Root/Panel" unique_id=183254]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/WeaponOverlay/Root/Panel/Content" unique_id=183255]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TopRow" type="HBoxContainer" parent="UI/WeaponOverlay/Root/Panel/Content/VBox" unique_id=183256]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/WeaponOverlay/Root/Panel/Content/VBox/TopRow" unique_id=183257]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "当前法宝"
+
+[node name="WeaponOverlayCloseButton" type="Button" parent="UI/WeaponOverlay/Root/Panel/Content/VBox/TopRow" unique_id=183258]
+layout_mode = 2
+text = "关闭"
+
+[node name="WeaponEmptyHint" type="Label" parent="UI/WeaponOverlay/Root/Panel/Content/VBox" unique_id=183259]
+visible = false
+layout_mode = 2
+text = "暂无法宝"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="UI/WeaponOverlay/Root/Panel/Content/VBox" unique_id=183260]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WeaponListVBox" type="VBoxContainer" parent="UI/WeaponOverlay/Root/Panel/Content/VBox/Scroll" unique_id=183261]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
 [node name="LootPopup" type="PanelContainer" parent="UI" unique_id=183300]
 visible = false
